@@ -13,7 +13,7 @@ def word_to_chunks_of_n(binary, n=4):
 def report_word(word):
     from libraries.square import get_squares, is_square_free
     from libraries.overlap import get_overlaps, is_overlap_free
-    from extremal import is_extremal, is_nearly_extremal
+    from square import is_extremal_square_free, is_nearly_extremal_square_free
     
     short_word = word[: min(len(word), 7)]
     if len(short_word) < len(word):
@@ -26,9 +26,9 @@ def report_word(word):
     print(f"\nIs overlap free? {is_overlap_free(word)}")
     print(f"\tOverlaps in {short_word} (total={len(ovr)}):")
     print(", ".join(ovr))
-    if is_extremal(word, set(word)):
+    if is_extremal_square_free(word, set(word)):
         print(f"\n\t\t{short_word} is extremal.")
-    if is_nearly_extremal(word, set(word)):
+    if is_nearly_extremal_square_free(word, set(word)):
         print(f"\n\t\t{short_word} is nearly extremal.")
     print("-*-" * 12)
 
@@ -96,6 +96,66 @@ def canonical_form(word):
         new_word_r += dic_r[c_r]
 
     return min(new_word, new_word_r)
+
+def cycle_letters(word, cycle: dict):
+    result = ""
+    for letter in word:
+        if letter in cycle:
+            result += cycle[letter]
+        else:
+            result += letter
+    return result
+
+def get_extensions(word, alphabet = None, positions = None):
+    from .alphabet import extract_alphabet
+    if alphabet is None:
+        alphabet = extract_alphabet(word)
+    if positions is None:
+        positions = range(0,len(word)+1)
+
+    extensions = []
+    for i in positions:
+        for extensions in extend_at_position(word, alphabet, i):
+            if extensions not in extensions:
+                extensions.append(extensions)
+    return extensions
+
+def extend_at_position(word, alphabet, position):
+    extensions = []
+    for a in alphabet:
+        extensions.append(word[:position] + a + word[position:])
+    return extensions
+
+def complexity(word, n):
+    factors = {}
+    for i in range(0, len(word) - n + 1):
+        factors[word[i : i + n]] = None
+    return len(factors.keys())
+
+def factors(w):
+    result = set()
+    for n in range(1,len(w)+1):
+        for i in range(0, len(w)-n+1):
+            result.add(w[i:n+i])
+    return result   
+
+def period(w):
+    n = len(w)
+    for p in range(1, n):
+        returnFlag = True
+        for i in range(0, n-p):
+            if w[i] != w[i+p]:
+                returnFlag = False
+                break
+        if returnFlag:
+            return p
+    return 0
+
+def exponent(w):
+    p = period(w)
+    if p == 0:
+        return 0
+    return len(w) / p
 
 def generate_greedy_words(alphabet, length, condition):
     words = [""]

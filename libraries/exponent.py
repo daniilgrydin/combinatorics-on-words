@@ -17,7 +17,7 @@ class ExtendedReal:
 
 def get_critical_exponent(word):
     max_power = 1
-    max_power_start = 0
+    # max_power_start = 0
     for start in range(len(word)):
         repetition = 0
         for cursor in range(start+1, len(word)):
@@ -30,10 +30,10 @@ def get_critical_exponent(word):
                 power = power_length / (power_length - repetition)
                 if power > max_power:
                     max_power = power
-                    max_power_start = start
+                    # max_power_start = start
             else:
                 repetition = 0
-    return (max_power, max_power_start)
+    return max_power
 
 def is_suffix_exponent_free(word, target_exponent: ExtendedReal | float | int):
     length = len(word)
@@ -57,4 +57,22 @@ def is_suffix_exponent_free(word, target_exponent: ExtendedReal | float | int):
         else:
             period = factor
             cursor = length-1
+    return True
+
+def is_exponent_free(word, target_exponent: ExtendedReal | float | int):
+    for start in range(len(word)):
+        repetition = 0
+        for cursor in range(start+1, len(word)):
+            if word[start+repetition] == word[cursor]:
+                repetition += 1
+                power_length = cursor-start+1
+                exponent = power_length / (power_length - repetition)
+                if isinstance(target_exponent, ExtendedReal):
+                    if target_exponent.is_less_than(exponent):
+                        return False
+                else:
+                    if target_exponent < exponent:
+                        return False
+            else:
+                repetition = 0
     return True

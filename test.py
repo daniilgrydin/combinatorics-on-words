@@ -1,5 +1,5 @@
 from libraries.word import generate_greedy_words_unique, generate_greedy_words
-from libraries.beta_free import is_suffix_exponent_free, ExtendedReal
+from libraries.exponent import is_suffix_exponent_free, ExtendedReal
 from libraries.word import color_word
 alphabet = "0124"
 length = 14

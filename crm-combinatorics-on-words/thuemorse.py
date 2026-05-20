@@ -1,3 +1,4 @@
+# Definition 1.3.1. of the Thue-Morse Word with n characters.
 def thue_morse_definition(length):
     from libraries.word import sum_of_digits
     thue_morse = ""
@@ -8,18 +9,20 @@ def thue_morse_definition(length):
         thue_morse += str(digit)
     return thue_morse
 
-def thue_morse_definition_alt_1(length):
-    thue_morse = ""
-    for i in range(length):
-        binary = bin(i)[2:]
-        digit = 0
-        for b in binary:
-            if b == "1":
-                digit = 1 - digit
-        thue_morse += str(digit)
-    return thue_morse
+# Alternate definition 1 for t using a DFAO
+def thue_morse_definition_automaton(length):
+    t = ""
+    for i in range(0, length):
+        b = format(i, 'b')
+        state = False
+        for j in range(0, len(b)):
+            if b[j] == '1':
+                state = not state
+        t += '1' if state else '0'
+    return t
 
-def thue_morse_definition_alt_2(length: int):
+# Alternative definition 2 for t using recursion
+def thue_morse_definition_recursive(length: int):
     digits = [0] * length
     for i in range(length):
         if i % 2 == 0:  # even
@@ -28,20 +31,23 @@ def thue_morse_definition_alt_2(length: int):
             digits[i] = 1 - digits[(i - 1) // 2]
     return "".join([str(d) for d in digits])
 
+# Alternate definition 3 using the Thue-Morse morphism. 
 def thue_morse_definition_alt_3(length: int):
     length_b = length.bit_length()  # rounded up log base 2
 
-    def mu(s):
-        basis = {"0": "01", "1": "10"}
+    # The Thue-Morse morphism function.
+    def mu(word):
+        map = {"0": "01", "1": "10"}
         result = ""
-        for c in s:
-            result += basis[c]
+        for digit in word:
+            result += map[digit]
         return result
 
     result = "0"
     for _ in range(length_b):
         result = mu(result)
     return result[:length]
+
 
 def ternary_thue_morse_word(length):
     length_b = length * 2  # approximation based on observation

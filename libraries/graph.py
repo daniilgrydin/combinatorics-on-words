@@ -34,14 +34,14 @@ def get_variations(word):
 
 
 def construct_thue_digraph(words):
-    from .extremal import is_nearly_extremal
+    from .square import is_nearly_extremal_square_free
     digraph = nx.DiGraph()
     digraph.add_nodes_from(words.keys())
-    for B1 in words.keys():
-        for B2 in words.keys():
+    for B1 in words:
+        for B2 in words:
             if B1 == B2:
                 continue
-            if is_nearly_extremal(B1 + B2):
+            if is_nearly_extremal_square_free(B1 + B2):
                 digraph.add_edge(B1, B2)
     return digraph
 
@@ -154,7 +154,7 @@ def lemma_7_all_pairs_have_walks(G, partition, printing=False, prefix="", permut
     return True
 
 def main():
-    from .extremal import is_nearly_extremal    
+    from .square import is_nearly_extremal_square_free
     # Digraph from the paper "Extremal Square-free Words", Lemma 4 page 5
     N = "abacbabcabacbcacbabcabacabcbabcabacbcabcb"
     Q = "cbacbcabacbabcabacbcabcbacbc"
@@ -168,7 +168,7 @@ def main():
             "\t".join([
                 permutations_of_N[node] for node in path
             ])
-            + f"\tis{" " if is_nearly_extremal("".join(path)) else " not "}square-free"
+            + f"\tis{" " if is_nearly_extremal_square_free("".join(path)) else " not "}square-free"
             # + f"\t{"".join(path)}"
             for path in get_square_free_paths(G, 3)
         ])
