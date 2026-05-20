@@ -146,12 +146,8 @@ def bPlusFreeWords(length, A, top, bottom):
 def containsBPlusSuffix(w, top, bottom):
     n = len(w)
 
-    # for p in range(1, k):
-    #     if not isBPlusFree(w[-(p*top)-1:],top/bottom):
-    #         return True
-    # return False
-
-    for p in range(0,n+1):
-        s = w[p:]
+    for p in range(1, n//top+1):
+        if not isBPlusFree(w[-(p*top)-1:],top/bottom):
+            return True
         
     return False

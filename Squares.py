@@ -120,3 +120,14 @@ def nonchalantWords(n,A):
 # We see that square free words are the same as beta 2-free words.
 # for i in squareFreeWords(10,3):
 #     print(Words.betaFree(i,2))
+
+# P = "abacbcabcbacabacbcabcbabcacbcabcbacabacbcabcbacbc"
+# Q = "abacbabcacbacabacbcacbacabcbabcabacbcabcb"
+# R = "abacabcacbacabcbabcacbacabacbcacbacabcbabcabacbcabcb"
+# S = "acabacbabcacbacabcbacbcabacbabcacbacabcbabcacbaca"
+# print(isNearlyExtremalSquareFree(Q))
+# print(isNearlyExtremalSquareFree(R))
+# print(getSquareFreeExtensions(P+Q))
+# print(getSquareFreeExtensions(P+R))
+# print(getSquareFreeExtensions(Q+S))
+# print(getSquareFreeExtensions(R+S))

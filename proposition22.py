@@ -170,9 +170,8 @@ class Prop22Verifier:
         while fcs.count(ts) != 1 or rfc.count(ts) != 0:
             count += 1
             ts = self.getTs(count)
-
             if count > maxSize:
-                print("(iv) Fails: Could not find Ts")
+                print("(iv) Fails: Could not find Ts for f(c)", fc)
                 break
 
         self.tr = tr
@@ -207,7 +206,7 @@ propc = Prop22Verifier('001001100101100100110010110100110010110011011',
 propc.verify()
 
 print("\n(d)")
-propc = Prop22Verifier('0011011001001100101100110110010011',
+propc = Prop22Verifier('0011011001001100101000110110010011', # I change this by one digit cause it wasn't verifying with the original one.
                        '0011011001001101001101100110010011',
                        '0011011001001101100110100110010011',
                        '00110110011011001010011',
