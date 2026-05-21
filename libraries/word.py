@@ -229,23 +229,29 @@ def generate_greedy_words(alphabet, length, condition):
         new_words = []
     return words
 
-def generate_greedy_words_unique(alphabet, length, condition):
-    words = [""]
+
+def generate_greedy_words_unique(alphabet, iterations, condition, seed=[""]):
+    words = seed
     unique_letters = [0]
-    
+    if seed != [""]:
+        unique_letters = [len(set(s)) for s in seed]
+
     new_words = []
     new_unique_letters = []
-    
-    for iteration in range(length):
+
+    for iteration in range(iterations):
+        # print(len(words[0]), len(words))
         for i in range(len(words)):
-            for j in range(min(unique_letters[i]+1, len(alphabet))):
+            for j in range(min(unique_letters[i] + 1, len(alphabet))):
                 candidate = words[i] + alphabet[j]
                 if condition(candidate):
                     if j >= unique_letters[i]:
-                        new_unique_letters.append(unique_letters[i]+1)
+                        new_unique_letters.append(unique_letters[i] + 1)
                     else:
                         new_unique_letters.append(unique_letters[i])
                     new_words.append(candidate)
+        if len(new_words) == 0:
+            return []
         words = new_words
         unique_letters = new_unique_letters
         new_words = []
