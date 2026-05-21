@@ -1,4 +1,5 @@
 STANDARD_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ENCODING_ALPHABET = STANDARD_ALPHABET + "!@#$%^&*"
 
 def word_in_alphabet(word, alphabet):
     for char in word:

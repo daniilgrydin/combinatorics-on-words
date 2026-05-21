@@ -4,6 +4,54 @@ def sum_of_digits(word):
         sum += int(c)
     return sum
 
+def substitude_alphabet(word, from_alphabet, to_alphabet):
+    if word == from_alphabet[0]:
+        return to_alphabet[0]
+    
+    output = ""
+    for a in word:
+        output += to_alphabet[from_alphabet.index(a)]
+    return output
+
+def convert_base(word, from_alphabet, to_alphabet):
+    if word == from_alphabet[0]:
+        return to_alphabet[0]
+    
+    if len(from_alphabet) == len(to_alphabet):
+        return substitude_alphabet(word, from_alphabet, to_alphabet)
+
+    decimal = 0
+    for i in range(len(word)):
+        digit = from_alphabet.index(word[i])
+        if digit > 0:
+            decimal += len(from_alphabet) ** (len(word)-1-i) * digit
+    output = ""
+    while decimal:
+        output += to_alphabet[int(decimal % len(to_alphabet))]
+        decimal //= len(to_alphabet)
+    return output[::-1]
+
+def encode_short(word, alphabet):
+    from .alphabet import ENCODING_ALPHABET
+    leading_zeros = 0
+    for a in word:
+        if a != alphabet[0]:
+            break
+        leading_zeros += 1
+        
+    return f"{alphabet}{f":{leading_zeros}" if leading_zeros else ""}:{convert_base(word, alphabet, ENCODING_ALPHABET)}"
+
+def decode_short(code):
+    from .alphabet import ENCODING_ALPHABET
+    alphabet = ""
+    encrypted = ""
+    leading_zeros = 0
+    if code.count(":") == 2:
+        alphabet, leading_zeros, encrypted = code.split(":")
+    else:
+        alphabet, encrypted = code.split(":")
+    leading_zeros = alphabet[0]*int(leading_zeros)
+    return leading_zeros + convert_base(encrypted, ENCODING_ALPHABET, alphabet)
 
 def word_to_chunks_of_n(binary, n=4):
     return " ".join(
