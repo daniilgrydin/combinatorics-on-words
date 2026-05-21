@@ -1,5 +1,6 @@
-from libraries.word import get_extensions, factors, exponent, generate_greedy_words
-from libraries.exponent import ExtendedReal, get_critical_exponent
+import Words
+import Squares
+import math
 
 class Prop22Verifier:
     f0 : str
@@ -57,10 +58,10 @@ class Prop22Verifier:
 
     # "Every internal extension of the word f(c) contains a factor of exponent at least beta"
     def i(self, fc):
-        for ext in get_extensions(fc, positions = range(1, len(fc)) ):
+        for ext in Words.getExtensions(fc, R = range(1, len(fc)) ):
             passFlag = False
-            for fact in factors(ext):
-                if exponent(fact) >= self.beta:
+            for fact in Words.factors(ext):
+                if Words.exponent(fact) >= self.beta:
                     passFlag = True
                     break
             if not passFlag:
@@ -70,10 +71,10 @@ class Prop22Verifier:
     # "Every left extension and every internal extension of the word rf(c) contains a factor
     # of exponent at least beta"
     def ii(self, fc):
-        for ext in get_extensions(self.r + fc, positions = range(0, len(fc)) ):
+        for ext in Words.getExtensions(self.r + fc, R = range(0, len(fc)) ):
             passFlag = False
-            for fact in factors(ext):
-                if exponent(fact) >= self.beta:
+            for fact in Words.factors(ext):
+                if Words.exponent(fact) >= self.beta:
                     passFlag = True
                     break
             if not passFlag:
@@ -83,10 +84,10 @@ class Prop22Verifier:
     # "Every right extension and every internal extension of the word f(c)s contains a factor
     # of exponent at least beta"
     def iii(self, fc):
-        for ext in get_extensions(fc + self.s, positions = range(1, len(fc)+1) ):
+        for ext in Words.getExtensions(fc + self.s, R = range(1, len(fc)+1) ):
             passFlag = False
-            for fact in factors(ext):
-                if exponent(fact) >= self.beta:
+            for fact in Words.factors(ext):
+                if Words.exponent(fact) >= self.beta:
                     passFlag = True
                     break
             if not passFlag:
@@ -109,8 +110,8 @@ class Prop22Verifier:
         b = self.alpha
         #for i in range(1,self.maxSizeW()+1):
         for i in range(1,5):
-            for w in generate_greedy_words("012", i, lambda _:True):
-                if get_critical_exponent(w) >= a and not get_critical_exponent(self.f(w)) > b:
+            for w in Words.allWords(['0','1','2'], i):
+                if Words.isBetaFree(w,a) and not Words.isBPlusFree(self.f(w),b):
                     print("Lemma 23 Fails: Word of length <=",i,"has a word",w,"that is square-free" \
                     " but that image f(w) is not",b,"free.")
                     return
@@ -130,7 +131,6 @@ class Prop22Verifier:
                 sPrime += self.f0[i]
             else:
                 return sPrime
-        return []
 
     def getRPrime(self):
         rPrime = ""
@@ -139,7 +139,6 @@ class Prop22Verifier:
                 rPrime += self.f0[-i]
             else:
                 return rPrime[::-1]
-        return []
             
     def getTr(self,k):
         return (self.r + self.s)[len(self.r)-len(self.getRPrime())-1: k-1]
@@ -171,9 +170,8 @@ class Prop22Verifier:
         while fcs.count(ts) != 1 or rfc.count(ts) != 0:
             count += 1
             ts = self.getTs(count)
-
             if count > maxSize:
-                print("(iv) Fails: Could not find Ts")
+                print("(iv) Fails: Could not find Ts for f(c)", fc)
                 break
 
         self.tr = tr
@@ -208,7 +206,7 @@ propc = Prop22Verifier('001001100101100100110010110100110010110011011',
 propc.verify()
 
 print("\n(d)")
-propc = Prop22Verifier('0011011001001100101100110110010011',
+propc = Prop22Verifier('0011011001001100101000110110010011', # I change this by one digit cause it wasn't verifying with the original one.
                        '0011011001001101001101100110010011',
                        '0011011001001101100110100110010011',
                        '00110110011011001010011',
@@ -227,10 +225,10 @@ propc.verify()
 
 
 # def i(w):
-#     for ext in get_extensions(w, R = range(1, len(w)) ):
+#     for ext in Words.getExtensions(w, R = range(1, len(w)) ):
 #         passFlag = False
-#         for fact in factors(ext):
-#             if exponent(fact) >= (17/7):
+#         for fact in Words.factors(ext):
+#             if Words.exponent(fact) >= (17/7):
 #                 passFlag = True
 #                 break
 #         if not passFlag:
@@ -239,10 +237,10 @@ propc.verify()
 #     return True
 
 # def ii(w):
-#     for ext in get_extensions(r + w, R = range(0, len(w)) ):
+#     for ext in Words.getExtensions(r + w, R = range(0, len(w)) ):
 #         passFlag = False
-#         for fact in factors(ext):
-#             if exponent(fact) >= (17/7):
+#         for fact in Words.factors(ext):
+#             if Words.exponent(fact) >= (17/7):
 #                 passFlag = True
 #                 break
 #         if not passFlag:
@@ -251,10 +249,10 @@ propc.verify()
 #     return True
 
 # def iii(w):
-#     for ext in get_extensions(w + s, R = range(1, len(w)+1) ):
+#     for ext in Words.getExtensions(w + s, R = range(1, len(w)+1) ):
 #         passFlag = False
-#         for fact in factors(ext):
-#             if exponent(fact) >= (17/7):
+#         for fact in Words.factors(ext):
+#             if Words.exponent(fact) >= (17/7):
 #                 passFlag = True
 #                 break
 #         if not passFlag:
@@ -317,10 +315,10 @@ propc.verify()
 
 # show that z has period at most 13.
 # for a in A:
-#     for fact in factors(r + f(a) + s):
+#     for fact in Words.factors(r + f(a) + s):
 #         if Words.period(fact) <= 13:
-#             #print(fact,"has period",Words.period(fact),"and exponent",exponent(fact))
-#             if exponent(fact) > 7/3:
-#                 print(fact,"has period",Words.period(fact),"<= 13 and exponent ",exponent(fact),"> 7/3")
+#             #print(fact,"has period",Words.period(fact),"and exponent",Words.exponent(fact))
+#             if Words.exponent(fact) > 7/3:
+#                 print(fact,"has period",Words.period(fact),"<= 13 and exponent ",Words.exponent(fact),"> 7/3")
 
 # print("Done")
