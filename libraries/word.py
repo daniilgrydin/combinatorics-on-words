@@ -14,6 +14,15 @@ def permute(word, cycle):
         new_word += cycle[index]
     return new_word
 
+def get_permutations(word, alphabet):
+    from itertools import permutations
+    perms = [''.join(p) for p in permutations(alphabet)]
+    perms = list(set(perms))
+    output = [""]*len(perms)
+    for i in range(len(perms)):
+        output[i] = (permute(word, perms[i]))
+    return sorted(list(set(output)) + [word])
+
 def substitude_alphabet(word, from_alphabet, to_alphabet):
     if word == from_alphabet[0]:
         return to_alphabet[0]
