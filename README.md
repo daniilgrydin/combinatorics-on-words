@@ -23,7 +23,7 @@ This repository contains implementations of definitions and proofs from multiple
 
 [^1] [Extremal Overlap-Free and Extremal $\Beta$-Free Binary Words](https://arxiv.org/abs/2006.10152)
 [^2] [Extremal Square-Free Words](https://arxiv.org/abs/1910.06226)
-[^4] [Lengths of Extremal Square-Free Ternary Words](https://arxiv.org/abs/2001.11763)
+[^3] [Lengths of Extremal Square-Free Ternary Words](https://arxiv.org/abs/2001.11763)
 
 ## Usage
 
