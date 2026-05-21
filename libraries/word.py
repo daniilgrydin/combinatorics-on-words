@@ -276,3 +276,50 @@ def generate_greedy_words_unique(alphabet, iterations, condition, seed=[""]):
         new_words = []
         new_unique_letters = []
     return words
+
+def circular(word):
+    words = [word]
+    for i in range(1,len(word)):
+        words.append(words[-1][-1] + words[-1][:-1])
+    return words
+
+# def find_extremal_from_list(words, beta):
+#     from .exponent import is_exponent_free
+#     from .exponent import ExtendedReal
+
+def all_cycles(A) -> list[dict]:
+    from itertools import permutations
+
+    cycles = []
+    cycles_set = {''}
+
+    # Get permutations of the alphabet.
+    cycle_permutations = []
+    for i in range(2, len(A)+1):
+        cycle_permutations.extend(permutations(A, i))
+    
+    # Create circular words from the permutations.
+    circular_words = []
+    for p in cycle_permutations:
+        word = ""
+        for a in p:
+            word += a
+        circular_words.append(circular(word))
+    
+    # Create the set from circular words.
+    for c in circular_words:
+        c.sort()
+        cycles_set.add(c[0])
+    
+    # Turn cycle strings into dictionaries
+    for c in cycles_set:
+        cycle_dict = {}
+        for a in A:
+            letter_at = c.find(a)
+            if letter_at == -1:
+                cycle_dict[a] = a
+            else:
+                cycle_dict[a] = c[(letter_at + 1) % len(c)]
+        cycles.append(cycle_dict)
+
+    return cycles
