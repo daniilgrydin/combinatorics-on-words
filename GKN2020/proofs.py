@@ -1,5 +1,5 @@
-from libraries.methods import *
-from libraries.graph import *
+from ..package.square import is_square_free, is_nearly_extremal_square_free
+from ..package.graph import get_variations, construct_thue_digraph, is_thue_digraph, lemma_7_all_pairs_have_walks
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -8,13 +8,13 @@ def proof_lemma_3():
     print("\tThe word N is nearly extremal and the only \n\tsquare free extensions are cN and Na.\n")
     
     N = "abacbabcabacbcacbabcabacabcbabcabacbcabcb"
-    nearly_extremal = SQUARE.is_nearly_extremal(N)
+    nearly_extremal = is_nearly_extremal_square_free(N)
     left_extension = 'c' + N
     right_extension = N + 'a'
     print(f"N = {N}")
     print(f"is N nearly-extremal?\t{nearly_extremal}")
-    print(f"is cN square free?\t{SQUARE.is_square_free(left_extension)}")
-    print(f"is Na square free?\t{SQUARE.is_square_free(right_extension)}")
+    print(f"is cN square free?\t{is_square_free(left_extension)}")
+    print(f"is Na square free?\t{is_square_free(right_extension)}")
 
 def proof_lemma_4():
     print("\t\t-=-=-\033[43m\033[30m Lemma 4 \033[0m-=-=-")
@@ -45,7 +45,7 @@ def proof_corollary_5():
     print("Part of the proof is to show that for any two\nconsecutive blocks B1 and B2 in D_N, B1+B2 is nearly extremal.")
     print("Every pair B1+B2:")
     for edge in G.edges():
-        print(f"{permutations_of_N[edge[0]]}\t+\t{permutations_of_N[edge[1]]}\tis {"nearly extremal" if SQUARE.is_nearly_extremal(edge[0]+edge[1]) else "not nearly extremal"}")
+        print(f"{permutations_of_N[edge[0]]}\t+\t{permutations_of_N[edge[1]]}\tis {"nearly extremal" if is_nearly_extremal_square_free(edge[0]+edge[1]) else "not nearly extremal"}")
     
 def proof_lemma_8():
     print("\t\t-=-=-\033[43m\033[30m Lemma 8 \033[0m-=-=-")
@@ -88,19 +88,19 @@ def proof_lemma_10():
     print(f"Q = {Q}")
     print(f"R = {R}")
     print("QN:")
-    print(f"\tis QNa square free?\t{SQUARE.is_square_free(Q+N+"a")}")
-    print(f"\tis QNb square free?\t{SQUARE.is_square_free(Q+N+"b")}")
-    print(f"\tis QNc square free?\t{SQUARE.is_square_free(Q+N+"c")}")
-    print(f"\tis aQN square free?\t{SQUARE.is_square_free("a"+Q+N)}")
-    print(f"\tis bQN square free?\t{SQUARE.is_square_free("b"+Q+N)}")
-    print(f"\tis cQN square free?\t{SQUARE.is_square_free("c"+Q+N)}")
+    print(f"\tis QNa square free?\t{is_square_free(Q+N+"a")}")
+    print(f"\tis QNb square free?\t{is_square_free(Q+N+"b")}")
+    print(f"\tis QNc square free?\t{is_square_free(Q+N+"c")}")
+    print(f"\tis aQN square free?\t{is_square_free("a"+Q+N)}")
+    print(f"\tis bQN square free?\t{is_square_free("b"+Q+N)}")
+    print(f"\tis cQN square free?\t{is_square_free("c"+Q+N)}")
     print("NR:")
-    print(f"\tis NRa square free?\t{SQUARE.is_square_free(N+R+"a")}")
-    print(f"\tis NRb square free?\t{SQUARE.is_square_free(N+R+"b")}")
-    print(f"\tis NRc square free?\t{SQUARE.is_square_free(N+R+"c")}")
-    print(f"\tis aNR square free?\t{SQUARE.is_square_free("a"+N+R)}")
-    print(f"\tis bNR square free?\t{SQUARE.is_square_free("b"+N+R)}")
-    print(f"\tis cNR square free?\t{SQUARE.is_square_free("c"+N+R)}")
+    print(f"\tis NRa square free?\t{is_square_free(N+R+"a")}")
+    print(f"\tis NRb square free?\t{is_square_free(N+R+"b")}")
+    print(f"\tis NRc square free?\t{is_square_free(N+R+"c")}")
+    print(f"\tis aNR square free?\t{is_square_free("a"+N+R)}")
+    print(f"\tis bNR square free?\t{is_square_free("b"+N+R)}")
+    print(f"\tis cNR square free?\t{is_square_free("c"+N+R)}")
 
 def proof_lemma_11():
     print("\t\t-=-=-\033[43m\033[30m Lemma 11 \033[0m-=-=-")

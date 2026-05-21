@@ -1,4 +1,4 @@
-from libraries.automata import Automata
+from ..package.automata import Automata
 
 def state_aa(cargo):
     bit = cargo[0]

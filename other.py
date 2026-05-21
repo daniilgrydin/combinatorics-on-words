@@ -1,8 +1,8 @@
-from libraries.word import generate_greedy_words_unique
-from libraries.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
-from libraries.extremal import is_extremal, is_nearly_extremal
-from libraries.square import is_square_free
-from libraries.word import color_word
+from package.word import generate_greedy_words_unique
+from package.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
+from package.extremal import is_extremal, is_nearly_extremal
+from package.square import is_square_free
+from package.word import color_word
 
 N = "abacbabcabacbcacbabcabacabcbabcabacbcabcb"
 P = "abacbcabcbacabacbcabcbabcacbcabcbacabacbcabcbacbc"

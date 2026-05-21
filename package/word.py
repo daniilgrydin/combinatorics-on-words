@@ -79,8 +79,8 @@ def word_to_chunks_of_n(binary, n=4):
 
 
 def report_word(word):
-    from libraries.square import get_squares, is_square_free
-    from libraries.overlap import get_overlaps, is_overlap_free
+    from package.square import get_squares, is_square_free
+    from package.overlap import get_overlaps, is_overlap_free
     from square import is_extremal_square_free, is_nearly_extremal_square_free
 
     short_word = word[: min(len(word), 7)]
@@ -287,7 +287,7 @@ def circular(word):
 #     from .exponent import is_exponent_free
 #     from .exponent import ExtendedReal
 
-def all_cycles(A) -> list[dict]:
+def all_cycles(alphabet) -> list[dict]:
     from itertools import permutations
 
     cycles = []
@@ -295,8 +295,8 @@ def all_cycles(A) -> list[dict]:
 
     # Get permutations of the alphabet.
     cycle_permutations = []
-    for i in range(2, len(A)+1):
-        cycle_permutations.extend(permutations(A, i))
+    for i in range(2, len(alphabet)+1):
+        cycle_permutations.extend(permutations(alphabet, i))
     
     # Create circular words from the permutations.
     circular_words = []
@@ -314,7 +314,7 @@ def all_cycles(A) -> list[dict]:
     # Turn cycle strings into dictionaries
     for c in cycles_set:
         cycle_dict = {}
-        for a in A:
+        for a in alphabet:
             letter_at = c.find(a)
             if letter_at == -1:
                 cycle_dict[a] = a

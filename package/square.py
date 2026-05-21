@@ -46,7 +46,7 @@ def generate_square_free_words(n, k, prefix=""):
     return words
 
 def is_extremal_square_free(word, alphabet=None):
-    from libraries.square import is_square_free
+    from package.square import is_square_free
     
     if alphabet is None:
         alphabet = set(word)
@@ -61,7 +61,7 @@ def is_extremal_square_free(word, alphabet=None):
     return True
 
 def is_nearly_extremal_square_free(word, alphabet=None):
-    from libraries.square import is_square_free
+    from package.square import is_square_free
     
     if not is_square_free(word):
         return False
@@ -76,7 +76,7 @@ def is_nearly_extremal_square_free(word, alphabet=None):
     return True
 
 def is_nearly_extremal_details(word, alphabet=None):
-    from libraries.square import is_square_free
+    from package.square import is_square_free
     
     if not is_square_free(word):
         return False
