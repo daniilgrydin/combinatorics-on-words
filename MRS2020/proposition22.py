@@ -1,4 +1,4 @@
-from libraries.word import get_extensions, factors, exponent, generate_greedy_words
+from libraries.word import get_extensions, get_factors, exponent, generate_greedy_words
 from libraries.exponent import ExtendedReal, get_critical_exponent
 
 class Prop22Verifier:
@@ -59,7 +59,7 @@ class Prop22Verifier:
     def i(self, fc):
         for ext in get_extensions(fc, positions = range(1, len(fc)) ):
             passFlag = False
-            for fact in factors(ext):
+            for fact in get_factors(ext):
                 if exponent(fact) >= self.beta:
                     passFlag = True
                     break
@@ -72,7 +72,7 @@ class Prop22Verifier:
     def ii(self, fc):
         for ext in get_extensions(self.r + fc, positions = range(0, len(fc)) ):
             passFlag = False
-            for fact in factors(ext):
+            for fact in get_factors(ext):
                 if exponent(fact) >= self.beta:
                     passFlag = True
                     break
@@ -85,7 +85,7 @@ class Prop22Verifier:
     def iii(self, fc):
         for ext in get_extensions(fc + self.s, positions = range(1, len(fc)+1) ):
             passFlag = False
-            for fact in factors(ext):
+            for fact in get_factors(ext):
                 if exponent(fact) >= self.beta:
                     passFlag = True
                     break

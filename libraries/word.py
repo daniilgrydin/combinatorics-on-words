@@ -185,7 +185,8 @@ def complexity(word, n):
         factors[word[i : i + n]] = None
     return len(factors.keys())
 
-def factors(w):
+
+def get_factors(w):
     result = set()
     for n in range(1, len(w) + 1):
         for i in range(0, len(w) - n + 1):
