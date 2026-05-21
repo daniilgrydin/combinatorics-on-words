@@ -1,4 +1,4 @@
-from libraries.automata import Automata
+from ..package.automata import Automata
 
 def read_1(cargo:str):
     bit = cargo[0]
