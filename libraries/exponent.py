@@ -12,6 +12,9 @@ class ExtendedReal:
                 return self.numerator <= self.denominator * other
         else: raise ValueError(f"{type(other)} type is not supported.")
     
+    def __float__(self):
+        return self.numerator / self.denominator
+    
     def __str__(self):
         return f"{self.numerator}/{self.denominator}{"+" if self.plus else ""}"
 
