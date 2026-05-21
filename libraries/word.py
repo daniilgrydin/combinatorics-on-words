@@ -163,9 +163,9 @@ def get_extensions(word, alphabet = None, positions = None):
 
     extensions = []
     for i in positions:
-        for extensions in extend_at_position(word, alphabet, i):
-            if extensions not in extensions:
-                extensions.append(extensions)
+        for extension in extend_at_position(word, alphabet, i):
+            if extension not in extensions:
+                extensions.append(extension)
     return extensions
 
 def extend_at_position(word, alphabet, position):
