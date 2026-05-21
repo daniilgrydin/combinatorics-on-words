@@ -2,9 +2,9 @@
 
 Table of Contents:
 
-1. [Resources](##Resources)
-2. [Usage](##Usage)
-3. [Documentation](##Documentation)
+1. [Resources](#resources)
+2. [Usage](#usage)
+3. [Documentation](#documentation)
 
 ## Resources
 
