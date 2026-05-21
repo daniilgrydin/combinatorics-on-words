@@ -79,8 +79,8 @@ def word_to_chunks_of_n(binary, n=4):
 
 
 def report_word(word):
-    from package.square import get_squares, is_square_free
-    from package.overlap import get_overlaps, is_overlap_free
+    from combinatorics.square import get_squares, is_square_free
+    from combinatorics.overlap import get_overlaps, is_overlap_free
     from square import is_extremal_square_free, is_nearly_extremal_square_free
 
     short_word = word[: min(len(word), 7)]
