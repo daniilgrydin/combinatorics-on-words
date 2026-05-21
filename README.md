@@ -10,3 +10,5 @@ This repository contains implementations of definitions and proofs from multiple
     - Found in [MRS2020](MRS2020)
 3) [Extremal Square-free Words](https://arxiv.org/abs/1910.06226)
     - Found in [GKN2020](GKN2020)
+4) [Lengths of extremal square-free ternary words](https://arxiv.org/pdf/2001.11763)
+    - Found in [MR2020](MR2020)
