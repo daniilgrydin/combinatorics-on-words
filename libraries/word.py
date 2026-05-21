@@ -156,14 +156,12 @@ def cycle_letters(word, cycle: dict):
             result += letter
     return result
 
-def get_extensions(word, alphabet = None, positions = None):
 def get_extensions(word, alphabet=None, positions=None):
     from .alphabet import extract_alphabet
 
     if alphabet is None:
         alphabet = extract_alphabet(word)
     if positions is None:
-        positions = range(0,len(word)+1)
         positions = range(0, len(word) + 1)
 
     extensions = []
