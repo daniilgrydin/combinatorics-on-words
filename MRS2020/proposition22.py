@@ -1,5 +1,6 @@
-from ..package.word import get_extensions, get_factors, exponent, generate_greedy_words
-from ..package.exponent import ExtendedReal, get_critical_exponent
+from libraries.word import get_extensions, get_factors, exponent, generate_greedy_words
+from libraries.square import generate_square_free_words
+from libraries.exponent import ExtendedReal, get_critical_exponent
 
 class Prop22Verifier:
     f0 : str
@@ -50,8 +51,8 @@ class Prop22Verifier:
 
         self.checkSynchronizing()
         print("Synchronizing check done")
-        #self.lemma23Check()
-        #print("Lemma 23 check done")
+        self.lemma23Check()
+        print("Lemma 23 check done")
         
         print("Done")
 
@@ -107,11 +108,10 @@ class Prop22Verifier:
     def lemma23Check(self):
         a = 2
         b = self.alpha
-        #for i in range(1,self.maxSizeW()+1):
-        for i in range(1,5):
-            for w in generate_greedy_words("012", i, lambda _:True):
-                if get_critical_exponent(w) >= a and not get_critical_exponent(self.f(w)) > b:
-                    print("Lemma 23 Fails: Word of length <=",i,"has a word",w,"that is square-free" \
+        for i in range(1,self.maxSizeW()+1):
+            for w in generate_square_free_words(3,i):
+                if get_critical_exponent(self.f(w)) > b:
+                    print("Lemma 23 Fails: Word of length <=",self.maxSizeW(),"has a word",w,"that is square-free" \
                     " but that image f(w) is not",b,"free.")
                     return
 
@@ -208,22 +208,24 @@ propc = Prop22Verifier('001001100101100100110010110100110010110011011',
 propc.verify()
 
 print("\n(d)")
-propc = Prop22Verifier('0011011001001100101100110110010011',
+propd = Prop22Verifier('0011011001001100101100110110010011',
                        '0011011001001101001101100110010011',
                        '0011011001001101100110100110010011',
                        '00110110011011001010011',
                        '00110101100100110010011',
                        5/2, 18/7)
-propc.verify()
+propd.verify()
 
 print("\n(e)")
-propc = Prop22Verifier('0011011001001100101100110110010011',
+prope = Prop22Verifier('0011011001001100101100110110010011',
                        '0011011001001101100110100110010011',
                        '0011011001101001100100110110010011',
                        '01101100110110011001010011',
                        '00110101100110010011001001',
                        18/7, 8/3)
-propc.verify()
+prope.verify()
+
+input()
 
 
 # def i(w):

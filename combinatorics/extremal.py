@@ -36,7 +36,7 @@ def is_nearly_extremal(word, alphabet, filter):
                 return False
             found_left_extension = True
     
-    # checking the left extensions
+    # checking the right extensions
     found_right_extension = False
     right_extensions = get_extensions(word, alphabet, [len(word)-1])
     for extension in right_extensions:
