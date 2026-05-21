@@ -19,6 +19,12 @@ def is_square_free(word):
                 return False
     return True
 
+def is_language_square_free(language):
+    for w in language:
+        if not is_square_free(w):
+            return False
+    return True
+
 def has_square_suffix(w):
     for length in range(1, len(w) // 2 + 1):
         if w[-2 * length : -length] == w[-length:]:
