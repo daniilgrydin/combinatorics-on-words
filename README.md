@@ -3,7 +3,7 @@
 Table of Contents:
 
 1. [Resources](#resources)
-2. [Usage](#usage)
+2. [Example Use](#example-use)
 3. [Documentation](#documentation)
 
 ## Resources
@@ -25,9 +25,7 @@ This repository contains implementations of definitions and proofs from multiple
 [^2]: [Extremal Square-Free Words](https://arxiv.org/abs/1910.06226)
 [^3]: [Lengths of Extremal Square-Free Ternary Words](https://arxiv.org/abs/2001.11763)
 
-## Usage
-
-In the [libraries](libraries) folder you will find python files each filled with supplementary functions related to that files topic.
+## Example Use
 
 In the root there is a file `example.py` with following contents:
 
