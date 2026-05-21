@@ -4,6 +4,16 @@ def sum_of_digits(word):
         sum += int(c)
     return sum
 
+def permute(word, cycle):
+    new_word = ""
+    for c in word:
+        if c not in cycle:
+            new_word += c
+            continue
+        index = (cycle.find(c) + 1) % len(cycle)
+        new_word += cycle[index]
+    return new_word
+
 def substitude_alphabet(word, from_alphabet, to_alphabet):
     if word == from_alphabet[0]:
         return to_alphabet[0]
