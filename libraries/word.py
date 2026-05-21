@@ -194,3 +194,9 @@ def generate_greedy_words_unique(alphabet, length, condition):
         new_words = []
         new_unique_letters = []
     return words
+
+def circular(word):
+    words = [word]
+    for i in range(1,len(word)):
+        words.append(words[-1][-1] + words[-1][:-1])
+    return words
