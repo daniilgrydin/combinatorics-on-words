@@ -58,11 +58,12 @@ def word_to_chunks_of_n(binary, n=4):
         [binary[i : min(i + n, len(binary))] for i in range(0, len(binary), n)]
     )
 
+
 def report_word(word):
     from libraries.square import get_squares, is_square_free
     from libraries.overlap import get_overlaps, is_overlap_free
     from square import is_extremal_square_free, is_nearly_extremal_square_free
-    
+
     short_word = word[: min(len(word), 7)]
     if len(short_word) < len(word):
         short_word += "..."
@@ -145,6 +146,7 @@ def canonical_form(word):
 
     return min(new_word, new_word_r)
 
+
 def cycle_letters(word, cycle: dict):
     result = ""
     for letter in word:
@@ -155,11 +157,14 @@ def cycle_letters(word, cycle: dict):
     return result
 
 def get_extensions(word, alphabet = None, positions = None):
+def get_extensions(word, alphabet=None, positions=None):
     from .alphabet import extract_alphabet
+
     if alphabet is None:
         alphabet = extract_alphabet(word)
     if positions is None:
         positions = range(0,len(word)+1)
+        positions = range(0, len(word) + 1)
 
     extensions = []
     for i in positions:
@@ -168,11 +173,13 @@ def get_extensions(word, alphabet = None, positions = None):
                 extensions.append(extension)
     return extensions
 
+
 def extend_at_position(word, alphabet, position):
     extensions = []
     for a in alphabet:
         extensions.append(word[:position] + a + word[position:])
     return extensions
+
 
 def complexity(word, n):
     factors = {}
@@ -182,22 +189,24 @@ def complexity(word, n):
 
 def factors(w):
     result = set()
-    for n in range(1,len(w)+1):
-        for i in range(0, len(w)-n+1):
-            result.add(w[i:n+i])
-    return result   
+    for n in range(1, len(w) + 1):
+        for i in range(0, len(w) - n + 1):
+            result.add(w[i : n + i])
+    return result
+
 
 def period(w):
     n = len(w)
     for p in range(1, n):
         returnFlag = True
-        for i in range(0, n-p):
-            if w[i] != w[i+p]:
+        for i in range(0, n - p):
+            if w[i] != w[i + p]:
                 returnFlag = False
                 break
         if returnFlag:
             return p
     return 0
+
 
 def exponent(w):
     p = period(w)
@@ -205,11 +214,12 @@ def exponent(w):
         return 0
     return len(w) / p
 
+
 def generate_greedy_words(alphabet, length, condition):
     words = [""]
-    
+
     new_words = []
-    
+
     for iteration in range(length):
         for i in range(len(words)):
             for j in range(len(alphabet)):
