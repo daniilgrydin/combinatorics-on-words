@@ -101,9 +101,10 @@ class Prop22Verifier:
                 for c in A:
                     fab = self.f(a+b)
                     fcIndex = fab.find(self.f(c))
-                    if fcIndex > 0 and fcIndex != len(fab) - len(self.f0):
-                        print("Not synchronizing.")
-                        return
+                    if fcIndex != -1:
+                        if fcIndex != 0 or fcIndex != len(fab) - len(self.f0):
+                            print("Not synchronizing.")
+                            return
 
     def lemma23Check(self):
         a = 2
