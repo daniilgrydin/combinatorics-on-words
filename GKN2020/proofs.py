@@ -1,5 +1,5 @@
-from ..package.square import is_square_free, is_nearly_extremal_square_free
-from ..package.graph import get_variations, construct_thue_digraph, is_thue_digraph, lemma_7_all_pairs_have_walks
+from ..combinatorics.square import is_square_free, is_nearly_extremal_square_free
+from ..combinatorics.graph import get_variations, construct_thue_digraph, is_thue_digraph, lemma_7_all_pairs_have_walks
 import networkx as nx
 import matplotlib.pyplot as plt
 

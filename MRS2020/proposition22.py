@@ -1,5 +1,5 @@
-from ..package.word import get_extensions, get_factors, exponent, generate_greedy_words
-from ..package.exponent import ExtendedReal, get_critical_exponent
+from ..combinatorics.word import get_extensions, get_factors, exponent, generate_greedy_words
+from ..combinatorics.exponent import ExtendedReal, get_critical_exponent
 
 class Prop22Verifier:
     f0 : str

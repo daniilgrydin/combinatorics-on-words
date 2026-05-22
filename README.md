@@ -2,9 +2,9 @@
 
 Table of Contents:
 
-1. [Resources](##Resources)
-2. [Usage](##Usage)
-3. [Documentation](##Documentation)
+1. [Resources](#resources)
+2. [Example Use](#example-use)
+3. [Documentation](#documentation)
 
 ## Resources
 
@@ -12,18 +12,20 @@ This repository contains implementations of definitions and proofs from multiple
 
 1) Combinatorics on Words: Christoffel Words and Repetitions in Words
     - Found in [BLRS2008](BLRS2008)
-2) [Extremal overlap-free and extremal beta-free words](https://arxiv.org/abs/2006.10152)
+2) Extremal overlap-free and extremal beta-free words[^1].
     - Found in [MRS2020](MRS2020)
     - Proof of the Proposition 22: `python -m MRS2020.proposition22`
-3) [Extremal Square-free Words](https://arxiv.org/abs/1910.06226)
+3) Extremal Square-free Words[^2].
     - Found in [GKN2020](GKN2020)
     - See all computational proofs: `python -m GKN2020.proofs`
-4) [Lengths of extremal square-free ternary words](https://arxiv.org/pdf/2001.11763)
+4) Lengths of extremal square-free ternary words[^3].
     - Found in [MR2020](MR2020)
 
-## Usage
+[^1]: [Extremal Overlap-Free and Extremal $\Beta$-Free Binary Words](https://arxiv.org/abs/2006.10152)
+[^2]: [Extremal Square-Free Words](https://arxiv.org/abs/1910.06226)
+[^3]: [Lengths of Extremal Square-Free Ternary Words](https://arxiv.org/abs/2001.11763)
 
-In the [libraries](libraries) folder you will find python files each filled with supplementary functions related to that files topic.
+## Example Use
 
 In the root there is a file `example.py` with following contents:
 
