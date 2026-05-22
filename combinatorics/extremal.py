@@ -25,6 +25,7 @@ def is_nearly_extremal(word, alphabet, filter):
     extensions = get_extensions(word, alphabet, range(1, len(word)-1))
     for extension in extensions:
         if filter(extension):
+            print("internal", extension)
             return False
     
     # checking the left extensions
@@ -33,15 +34,17 @@ def is_nearly_extremal(word, alphabet, filter):
     for extension in left_extensions:
         if filter(extension):
             if found_left_extension:
+                print("left", extension)
                 return False
             found_left_extension = True
     
     # checking the right extensions
     found_right_extension = False
-    right_extensions = get_extensions(word, alphabet, [len(word)-1])
+    right_extensions = get_extensions(word, alphabet, [len(word)])
     for extension in right_extensions:
         if filter(extension):
             if found_right_extension:
+                print("right", extension)
                 return False
             found_right_extension = True
 

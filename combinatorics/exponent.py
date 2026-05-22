@@ -10,6 +10,11 @@ class ExtendedReal:
                 return self.numerator < self.denominator * other
             else:
                 return self.numerator <= self.denominator * other
+        elif isinstance(other, ExtendedReal):
+            if self.plus:
+                return self.numerator * other.denominator < other.numerator * self.denominator
+            else:
+                return self.numerator * other.denominator <= other.numerator * self.denominator
         else: raise ValueError(f"{type(other)} type is not supported.")
     
     def __float__(self):
@@ -59,23 +64,30 @@ def is_suffix_exponent_free(word, target_exponent: ExtendedReal | float | int):
                     return False
         else:
             period = factor
-            cursor = length-1
+            cursor = length
     return True
 
 def is_exponent_free(word, target_exponent: ExtendedReal | float | int):
-    for start in range(len(word)):
-        repetition = 0
-        for cursor in range(start+1, len(word)):
-            if word[start+repetition] == word[cursor]:
-                repetition += 1
-                power_length = cursor-start+1
-                exponent = power_length / (power_length - repetition)
-                if isinstance(target_exponent, ExtendedReal):
-                    if target_exponent.is_less_than(exponent):
-                        return False
-                else:
-                    if target_exponent < exponent:
-                        return False
-            else:
-                repetition = 0
+    from .word import get_factors, period
+    for f in get_factors(word):
+        p = period(f)
+        power = ExtendedReal(len(f) if p != 0 else 0, period(f), False)
+        if target_exponent.is_less_than(power):
+            return False
     return True
+    # for start in range(len(word)):
+    #     repetition = 0
+    #     for cursor in range(start+1, len(word)):
+    #         if word[start+repetition] == word[cursor]:
+    #             repetition += 1
+    #             power_length = cursor-start+1
+    #             exponent = ExtendedReal(power_length, (power_length - repetition), False)
+    #             if isinstance(target_exponent, ExtendedReal):
+    #                 if target_exponent.is_less_than(exponent):
+    #                     return False
+    #             else:
+    #                 if target_exponent < exponent:
+    #                     return False
+    #         else:
+    #             repetition = 0
+    # return True
