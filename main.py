@@ -3,6 +3,7 @@ from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exp
 from combinatorics.extremal import is_extremal, is_nearly_extremal
 from combinatorics.square import is_square_free
 from combinatorics.word import color_word, encode_short
+import itertools
 
 def max_length(q, a:float, b:float):
     return max(
@@ -42,4 +43,21 @@ for length in range(4,100):
     for i in range(0, len(nearly_extremal), max(1, len(nearly_extremal)//20)):
         print(color_word(nearly_extremal[i], alphabet))
     print(f"Need quaternary words of length {max_length(length, float(alpha), float(beta))}")
-    
+
+quaternary_words_file = open("data/75_free_quaternary_words.txt", 'r')
+quaternary_words = []
+for line in quaternary_words_file.readlines():
+    quaternary_words.append(line.removesuffix('\n'))
+quaternary_words_file.close()
+
+nearly_extremal_dummy = ['01','10','11','00','101','010','110','001']
+nearly_extremal_combinations = itertools.combinations(nearly_extremal_dummy, 4)
+
+candidate_morphisms = []
+for i in nearly_extremal_combinations:
+    new_morphism = {}
+    new_morphism['0'] = i[0]
+    new_morphism['1'] = i[1]
+    new_morphism['2'] = i[2]
+    new_morphism['3'] = i[3]
+    candidate_morphisms.append(new_morphism)
