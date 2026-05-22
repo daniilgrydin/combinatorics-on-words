@@ -5,7 +5,7 @@ def is_uniform(morphism, alphabet):
     length = -1
     
     for a in alphabet:
-        new_length = morphism(a)
+        new_length = len(morphism(a))
         
         if length == -1:
             length = new_length
@@ -18,5 +18,18 @@ def is_uniform(morphism, alphabet):
 
 THUE_MORPHISM = dict_to_morphism({ "0": "01", "1": "10" })
 
-def is_synchronizing(morphism):
-    pass
+def is_synchronizing(morphism, alphabet):
+    for a in alphabet:
+        for b in alphabet:
+            for c in alphabet:
+                word = morphism(a+b)
+                find_index = word.find(morphism(c))
+                if find_index != -1: ## if f(ab) = uf(c)v for some u,v
+                    u = word[:find_index]
+                    v = word[find_index+len(morphism(c)):]
+                    if (len(u) == 0 and a == c) or (len(v) == 0 and b == c):
+                        pass # Good
+                    else:
+                        return False
+    return True
+
