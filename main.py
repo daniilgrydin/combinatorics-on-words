@@ -3,6 +3,7 @@ from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exp
 from combinatorics.extremal import is_extremal, is_nearly_extremal
 from combinatorics.square import is_square_free
 from combinatorics.word import color_word, encode_short
+from combinatorics.morphism import is_synchronizing, is_uniform, dict_to_morphism
 import itertools
 
 def max_length(q, a:float, b:float):
