@@ -3,7 +3,6 @@ from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exp
 from combinatorics.extremal import is_extremal, is_nearly_extremal
 from combinatorics.square import is_square_free
 from combinatorics.word import color_word, encode_short
-from combinatorics.morphism import dict_to_morphism, is_synchronizing, is_uniform
 import itertools
 
 def max_length(q, a:float, b:float):
@@ -11,7 +10,6 @@ def max_length(q, a:float, b:float):
         2 * b / (b - a),
         2 * (q - 1) * (2 * b - 1) / (q * (b - 1))
     )
-
 
 alphabet = "012"
 # length = 4
