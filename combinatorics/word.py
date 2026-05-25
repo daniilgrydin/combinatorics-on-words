@@ -225,6 +225,26 @@ def period(w):
             return p
     return 0
 
+def exponent(w):
+    for n in range(1, len(w) + 1):
+        for i in range(0, len(w) - n + 1):
+            f = w[i : n + i]
+            n = len(w)
+            period = 0
+            for p in range(1, n):
+                returnFlag = True
+                for j in range(0, n - p):
+                    if w[j] != w[j + p]:
+                        returnFlag = False
+                        break
+                if returnFlag:
+                    period = p
+                    break
+            power = Rational(len(f), period) if period != 0 else Rational(1,1)
+            if target_exponent.is_less_than(power):
+                #print(f"Target {target_exponent} < {power}")
+                return False
+    return True
 
 # def exponent(w):
 #     p = period(w)
@@ -233,8 +253,8 @@ def period(w):
 #     return (len(w), p)
 
 
-def generate_greedy_words(alphabet, length, condition):
-    words = [""]
+def generate_greedy_words(alphabet, length, condition, seed=[""]):
+    words = seed
 
     new_words = []
 
