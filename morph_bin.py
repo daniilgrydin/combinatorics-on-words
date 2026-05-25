@@ -4,23 +4,8 @@ from combinatorics.extremal import is_nearly_extremal
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
 
 from itertools import combinations
-from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 import time
-
-def check_valid_morphism(tuple, quaternary_images, alpha):
-        H0, H1, H2 = tuple
-        morphism = dict_to_morphism({
-            "0": H0,
-            "1": H1,
-            "2": H2
-        })
-        if not is_synchronizing(morphism, "012"): return False
-
-        for q in quaternary_images:
-            if not is_exponent_free(morphism(q), alpha): return False
-
-        return True
 
 if __name__ == "__main__":
     start = time.time()
@@ -38,7 +23,25 @@ if __name__ == "__main__":
             if len(q) > 1:
                 quaternary_images.append(q.strip())
 
-    unique = [""]
+    def check_valid_morphism(tuple):
+        H0, H1, H2 = tuple
+        morphism = dict_to_morphism({
+            "0": H0,
+            "1": H1,
+            "2": H2
+        })
+        if not is_synchronizing(morphism, from_alphabet): return False
+
+        for q in quaternary_images:
+            if not is_exponent_free(morphism(q), to_exponent): return False
+
+        return True
+
+    unique = generate_greedy_words_unique_parallel(
+        to_alphabet,
+        34,
+        partial(is_suffix_exponent_free, target_exponent=to_exponent)
+    )
     print("len\tcount\tgen_t\tchk_t\tmorph")
     for length in range(len(unique[0])+1, 100):
         unique = generate_greedy_words_unique_parallel(
@@ -64,10 +67,12 @@ if __name__ == "__main__":
         # for i in range(0, len(nearly_extremal), max(1, len(nearly_extremal)//5)):
         #     print(color_word(nearly_extremal[i], alphabet))
         
-        combos = list(combinations(nearly_extremal, 3))
-        with ProcessPoolExecutor(16) as pool:
-            results = list(pool.map(partial(check_valid_morphism, quaternary_images=quaternary_images, alpha=from_exponent), combos, chunksize=10000))
-            if any(results):
-                print("Found morphism!")
-            morphisms_count = results.count(True)
-        print(f"{round(time.time()-start,1)}s\t  {morphisms_count}")
+        for combo in combinations(nearly_extremal, 3):
+            # if not is_synchronizing(morphism): continue
+            if not check_valid_morphism(combo): continue
+            print("Found morphism!\a")
+            print("0", combo[0])
+            print("1", combo[1])
+            print("2", combo[2])
+            print()
+            break

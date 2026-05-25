@@ -277,11 +277,51 @@ def generate_greedy_words_unique(alphabet, iterations, condition, seed=[""]):
         new_unique_letters = []
     return words
 
+def iterate_word(params, condition, alphabet):
+    word, unique_letter = params
+    result = []
+    
+    for j in range(min(unique_letter + 1, len(alphabet))):
+            candidate = word + alphabet[j]
+            if condition(candidate):
+                new_unique_letter = unique_letter + (1  if j >= unique_letter else 0)
+                result.append( (candidate, new_unique_letter) )
+
+    return result
+
+def generate_greedy_words_unique_parallel(alphabet, iterations, condition, seed=[""]):
+    from concurrent.futures import ProcessPoolExecutor
+    from functools import partial
+    
+    pairs = [(word, len(set(word))) for word in seed]
+    iterate = partial(iterate_word, condition=condition, alphabet=alphabet)
+    
+    for _ in range(iterations):
+        result = []
+        with ProcessPoolExecutor(16) as pool:
+            batches = pool.map(iterate, pairs, chunksize=100)
+            
+            pairs = [
+                item
+                for batch in batches
+                for item in batch
+            ]
+
+        if not pairs: return []
+        
+    return [word for word, _ in pairs]
+
 def circular(word):
     words = [word]
     for i in range(1,len(word)):
         words.append(words[-1][-1] + words[-1][:-1])
     return words
+
+def generate_greedy_words_optimal(alphabet, iterations, condition, seed=[""]):
+    if len(seed[0]) < 100:
+        return generate_greedy_words_unique(alphabet, iterations, condition, seed)
+    else:
+        return generate_greedy_words_unique_parallel(alphabet, iterations, condition, seed)
 
 # def find_extremal_from_list(words, beta):
 #     from .exponent import is_exponent_free
