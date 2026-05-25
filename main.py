@@ -19,7 +19,7 @@ beta = ExtendedReal(7, 4, True) # ternary
 
 unique = generate_greedy_words_unique(
     alphabet,
-    1, # checked up to 58 and found nothing, so continuing the search (58, ...]
+    1,
     lambda word: is_suffix_exponent_free(word, beta)
 )
 
