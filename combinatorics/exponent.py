@@ -77,9 +77,9 @@ def is_exponent_free(word, target_exponent: ExtendedReal | float | int):
     from .word import get_factors, period
     for f in get_factors(word):
         p = period(f)
-        power = Rational(len(f) if p != 0 else 0, p)
+        power = Rational(len(f), p) if p != 0 else Rational(1,1)
         if target_exponent.is_less_than(power):
-            #print(f"Target {target_exponent} <= {power}")
+            #print(f"Target {target_exponent} < {power}")
             return False
     return True
     # for start in range(len(word)):

@@ -226,11 +226,11 @@ def period(w):
     return 0
 
 
-def exponent(w):
-    p = period(w)
-    if p == 0:
-        return 0
-    return (len(w), p)
+# def exponent(w):
+#     p = period(w)
+#     if p == 0:
+#         return 0
+#     return (len(w), p)
 
 
 def generate_greedy_words(alphabet, length, condition):
