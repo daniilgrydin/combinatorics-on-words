@@ -5,12 +5,7 @@ class ExtendedReal:
         self.plus = plus
         
     def is_less_than(self, other):
-        if isinstance(other, float) or isinstance(other, int):
-            if self.plus:
-                return self.numerator < self.denominator * other
-            else:
-                return self.numerator <= self.denominator * other
-        elif isinstance(other, Rational):
+        if isinstance(other, Rational):
             if self.plus:
                 return self.numerator * other.denominator < other.numerator * self.denominator
             else:
@@ -82,8 +77,9 @@ def is_exponent_free(word, target_exponent: ExtendedReal | float | int):
     from .word import get_factors, period
     for f in get_factors(word):
         p = period(f)
-        power = Rational(len(f) if p != 0 else 0, period(f))
+        power = Rational(len(f) if p != 0 else 0, p)
         if target_exponent.is_less_than(power):
+            #print(f"Target {target_exponent} <= {power}")
             return False
     return True
     # for start in range(len(word)):
