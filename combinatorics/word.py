@@ -213,7 +213,7 @@ def get_factors(w):
     return result
 
 
-def period(w):
+def p(w):
     n = len(w)
     for p in range(1, n):
         returnFlag = True
@@ -232,6 +232,21 @@ def period(w):
 #         return 0
 #     return (len(w), p)
 
+def backtrack(alphabet, length, condition):
+    result = []
+
+    def dfs(word):
+        if len(word) == length:
+            result.append(word)
+            return
+
+        for a in alphabet:
+            if condition(word+a):
+                dfs(word+a)
+
+    dfs('')
+
+    return result
 
 def generate_greedy_words(alphabet, length, condition):
     words = [""]
