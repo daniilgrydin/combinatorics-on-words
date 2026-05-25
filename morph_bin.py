@@ -1,4 +1,4 @@
-from combinatorics.word import generate_greedy_words_unique_parallel
+from combinatorics.word import generate_greedy_words_unique
 from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
 from combinatorics.extremal import is_nearly_extremal
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     unique = [""]
     print("len\tcount\tgen_t\tchk_t\tmorph")
     for length in range(len(unique[0])+1, 100):
-        unique = generate_greedy_words_unique_parallel(
+        unique = generate_greedy_words_unique(
             to_alphabet,
             1,
             partial(is_suffix_exponent_free, target_exponent=to_exponent),
@@ -57,7 +57,9 @@ if __name__ == "__main__":
                 word,
                 to_alphabet,
                 lambda w: is_exponent_free(w, to_exponent))]
-
+        
+        print(nearly_extremal)
+    
         print(f"  {length}\t  {len(nearly_extremal)}\t{round(time.time()-start,1)}s", end="\t")
         start = time.time()
         # print(f"There are {(len(nearly_extremal))*(len(nearly_extremal)-1)*(len(nearly_extremal)-2)*(len(nearly_extremal)-3)} permutations of them.")

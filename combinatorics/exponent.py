@@ -10,7 +10,7 @@ class ExtendedReal:
                 return self.numerator < self.denominator * other
             else:
                 return self.numerator <= self.denominator * other
-        elif isinstance(other, ExtendedReal):
+        elif isinstance(other, Rational):
             if self.plus:
                 return self.numerator * other.denominator < other.numerator * self.denominator
             else:
@@ -22,6 +22,17 @@ class ExtendedReal:
     
     def __str__(self):
         return f"{self.numerator}/{self.denominator}{"+" if self.plus else ""}"
+    
+class Rational:
+    def __init__(self, numerator, denominator):
+        self.numerator = numerator
+        self.denominator = denominator
+    
+    def __float__(self):
+        return self.numerator / self.denominator
+    
+    def __str__(self):
+        return f"{self.numerator}/{self.denominator}"
 
 def get_critical_exponent(word):
     max_power = 1
@@ -46,7 +57,7 @@ def get_critical_exponent(word):
 def is_suffix_exponent_free(word, target_exponent: ExtendedReal | float | int):
     length = len(word)
     period = length-1
-    cursor = period
+    cursor = period-1
     for factor in range(length-2, -1, -1):
         # print()
         # print(" " * (factor) + "v")
@@ -55,12 +66,12 @@ def is_suffix_exponent_free(word, target_exponent: ExtendedReal | float | int):
         # print(" " * (period) + "^")
         if word[factor] == word[cursor]:
             cursor -= 1
-            exponent = (length-factor) / (length - period)
+            power = Rational(length if period != 0 else 0, period)
             if isinstance(target_exponent, ExtendedReal):
-                if target_exponent.is_less_than(exponent):
+                if target_exponent.is_less_than(power):
                     return False
             else:
-                if target_exponent < exponent:
+                if target_exponent < power:
                     return False
         else:
             period = factor
@@ -71,7 +82,7 @@ def is_exponent_free(word, target_exponent: ExtendedReal | float | int):
     from .word import get_factors, period
     for f in get_factors(word):
         p = period(f)
-        power = ExtendedReal(len(f) if p != 0 else 0, period(f), False)
+        power = Rational(len(f) if p != 0 else 0, period(f))
         if target_exponent.is_less_than(power):
             return False
     return True
