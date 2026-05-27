@@ -1,13 +1,12 @@
-from combinatorics.word import generate_greedy_words_unique
-from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
-from combinatorics.extremal import is_nearly_extremal
+from combinatorics.exponent import ExtendedReal, is_exponent_free
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
 
 from itertools import combinations
-import time
-
+from math import comb
 
 alphabet = "012"
+min_q_to_check = 53
+max_q_to_check = 53
 
 alpha = ExtendedReal(7, 5, True) # quaternary
 beta = ExtendedReal(7, 4, True) # ternary
@@ -22,10 +21,13 @@ def check_valid_morphism(tuple):
         "2": H2,
         "3": H3
     })
-    if not is_synchronizing(morphism, "0123"): return False
+
+    if not is_synchronizing(morphism, "0123"): 
+        return False
 
     for q in quaternary_images:
-        if not is_exponent_free(morphism(q), beta): return False
+        if not is_exponent_free(morphism(q), beta): 
+            return False
 
     return True
 
@@ -34,37 +36,70 @@ with open("data/75_free_quaternary_words.txt", "r") as f:
         if len(q) > 1:
             quaternary_images.append(q.strip())
 
-unique = generate_greedy_words_unique(
-    alphabet,
-    1,
-    lambda word: is_suffix_exponent_free(word, beta)
-)
+print(f"Loaded {len(quaternary_images)} 7/5+-free quaternary words")
 
-for length in range(len(unique[0])+1, 100):
-    start = time.time()
-    unique = generate_greedy_words_unique(
-        alphabet,
-        1,
-        lambda word: is_suffix_exponent_free(word, beta),
-        seed=unique
-    )
+# unique = generate_greedy_words_unique(
+#     alphabet,
+#     1,
+#     lambda word: is_suffix_exponent_free(word, beta)
+# )
 
-    nearly_extremal = [
-        word
-        for word in unique
-        if
-        word[-1] != "0"
-        and is_nearly_extremal(
-            word,
-            alphabet,
-            lambda w: is_exponent_free(w, beta))]
+# for length in range(len(unique[0])+1, 100):
+#     start = time.time()
+#     unique = generate_greedy_words_unique(
+#         alphabet,
+#         1,
+#         lambda word: is_suffix_exponent_free(word, beta),
+#         seed=unique
+#     )
 
-    print(f"Found\t{len(nearly_extremal)}\twords of length\t{length}\tin\t{round(time.time()-start,1)}")
-    # print(f"There are {(len(nearly_extremal))*(len(nearly_extremal)-1)*(len(nearly_extremal)-2)*(len(nearly_extremal)-3)} permutations of them.")
-    # for i in range(0, len(nearly_extremal), max(1, len(nearly_extremal)//5)):
-    #     print(color_word(nearly_extremal[i], alphabet))
-    
-    for combo in combinations(nearly_extremal, 4):
+#     nearly_extremal = [
+#         word
+#         for word in unique
+#         if
+#         word[-1] != "0"
+#         and is_nearly_extremal(
+#             word,
+#             alphabet,
+#             lambda w: is_exponent_free(w, beta))]
+
+nearly_extremal = []
+for line in open("data/new_nearly_extremal_74p_ternary.txt", 'r').readlines():
+    candidate = line.strip()
+    if candidate[:4] == '0102' and candidate[-4:] == '0212' and len(candidate) <= max_q_to_check:
+        nearly_extremal.append(line.strip())
+print("Loaded nearly_extremal with size", len(nearly_extremal))
+
+# Create nearly_extremal_lengths. Each index holds words of the index's length.
+nearly_extremal_lengths = []
+for i in range(0, max_q_to_check+1):
+    nearly_extremal_lengths.append([])
+# Populate nearly_extremal_lengths
+for n in nearly_extremal:
+    nearly_extremal_lengths[len(n)].append(n)
+
+# Count the number of combinations
+total_combinations_to_check = 0
+for n in nearly_extremal_lengths:
+    total_combinations_to_check += comb(len(n),4)
+print(f"Total combinations to check: {total_combinations_to_check}")
+
+#print(f"Found\t{len(nearly_extremal)}\twords of length\t{length}\tin\t{round(time.time()-start,1)}")
+# print(f"There are {(len(nearly_extremal))*(len(nearly_extremal)-1)*(len(nearly_extremal)-2)*(len(nearly_extremal)-3)} permutations of them.")
+# for i in range(0, len(nearly_extremal), max(1, len(nearly_extremal)//5)):
+#     print(color_word(nearly_extremal[i], alphabet))
+
+for i in range(min_q_to_check,max_q_to_check+1):
+
+    #print(morphism_rejections)
+    print("checking q =",i)
+
+    for combo in combinations(nearly_extremal_lengths[i], 4):
+        # if not_synchronizing_count % 1000000 == 0:
+        #     print(not_synchronizing_count,"morphisms rejected because they are not synchronizing")
+        # if not_beta_free_count % 1000000 == 0:
+        #     print(not_beta_free_count,"morphisms rejected because their images are not 7/4+-free")
+
         # if not is_synchronizing(morphism): continue
         if not check_valid_morphism(combo): continue
         print("Found morphism!\a")
@@ -73,4 +108,4 @@ for length in range(len(unique[0])+1, 100):
         print("2", combo[2])
         print("3", combo[3])
         print()
-        break
+        
