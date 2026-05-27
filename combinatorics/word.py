@@ -17,11 +17,16 @@ def permute(word, cycle):
 def get_permutations(word, alphabet):
     from itertools import permutations
     perms = [''.join(p) for p in permutations(alphabet)]
-    perms = list(set(perms))
+    # perms = list(set(perms))
+    perms = [
+        {alphabet[i]: perm[i] for i in range(len(alphabet))}
+        for perm in perms
+    ]
     output = [""]*len(perms)
     for i in range(len(perms)):
-        output[i] = (permute(word, perms[i]))
-    return sorted(list(set(output)) + [word])
+        for a in word:
+            output[i] += perms[i][a]
+    return sorted(list(set(output)))
 
 def substitude_alphabet(word, from_alphabet, to_alphabet):
     if word == from_alphabet[0]:
@@ -225,26 +230,27 @@ def p(w):
             return p
     return 0
 
-def exponent(w):
-    for n in range(1, len(w) + 1):
-        for i in range(0, len(w) - n + 1):
-            f = w[i : n + i]
-            n = len(w)
-            period = 0
-            for p in range(1, n):
-                returnFlag = True
-                for j in range(0, n - p):
-                    if w[j] != w[j + p]:
-                        returnFlag = False
-                        break
-                if returnFlag:
-                    period = p
-                    break
-            power = Rational(len(f), period) if period != 0 else Rational(1,1)
-            if target_exponent.is_less_than(power):
-                #print(f"Target {target_exponent} < {power}")
-                return False
-    return True
+# def exponent(w):
+#     from .exponent import Rational
+#     for n in range(1, len(w) + 1):
+#         for i in range(0, len(w) - n + 1):
+#             f = w[i : n + i]
+#             n = len(w)
+#             period = 0
+#             for p in range(1, n):
+#                 returnFlag = True
+#                 for j in range(0, n - p):
+#                     if w[j] != w[j + p]:
+#                         returnFlag = False
+#                         break
+#                 if returnFlag:
+#                     period = p
+#                     break
+#             power = Rational(len(f), period) if period != 0 else Rational(1,1)
+#             if not target_exponent < power:
+#                 #print(f"Target {target_exponent} < {power}")
+#                 return False
+#     return True
 
 # def exponent(w):
 #     p = period(w)
@@ -358,3 +364,162 @@ def all_cycles(alphabet) -> list[dict]:
         cycles.append(cycle_dict)
 
     return cycles
+
+
+def explain_word(
+        *,
+        length          : int | tuple | None            = None,
+        exponent_free                           = None,
+        extremal        : bool | None           = None,
+        nearly_extremal : bool | None           = None,
+        **kwargs
+    ):
+    data = []
+    if extremal is not None:
+        data.append("extremal")
+    if nearly_extremal is not None:
+        data.append("nearly extremal")
+    if exponent_free is not None:
+        data.append(f"({str(exponent_free)})-free")
+    data.append("words")
+    if length is not None:
+        data.append(f"of length {str(length)}")
+    if len(kwargs) > 0:
+        other = [
+            (f"{key}: {value}" if not isinstance(value, bool) else f"{key}")
+            for key, value in kwargs.items()]
+        data.append(f"with additional parameters: {", ".join(other)}")
+    return " ".join(data)
+
+def construct_file_name(
+        *args,
+        length          : int | tuple | None            = None,
+        exponent_free                           = None,
+        extremal        : bool | None           = None,
+        nearly_extremal : bool | None           = None,
+    ):
+    data = []
+    if length is not None:
+        if isinstance(length, tuple):
+            data.append(f"({length[0]}-{length[1]})")
+        else:
+            data.append(length)
+            
+    if extremal is not None:
+        data.append("ex")
+    if nearly_extremal is not None:
+        data.append("nex")
+    if exponent_free is not None:
+        data.append(f"({exponent_free.rational.numerator}{"+" if exponent_free.plus else "-"}{exponent_free.rational.denominator})")
+    data.extend(sorted(args))
+    return "-".join(data) + ".txt"
+
+def word_filename_description(
+        *arg,
+        length          : int | tuple | None            = None,
+        exponent_free                           = None,
+        extremal        : bool | None           = None,
+        nearly_extremal : bool | None           = None,
+        **kwargs
+    ):
+    for a in arg:
+        kwargs[a] = True    
+    description = explain_word(
+        length=length,
+        exponent_free=exponent_free,
+        extremal=extremal,
+        nearly_extremal=nearly_extremal,
+        **kwargs
+    )
+    things = ()
+    for key, value in kwargs.items():
+        if isinstance(value, bool):
+            things += (key[:min(3, len(key))],)
+        else:
+            val = str(value)
+            things += (key[:min(3, len(key))] + val[:min(3, len(val))],)
+    filename = construct_file_name(
+        length=length,
+        exponent_free=exponent_free,
+        extremal=extremal,
+        nearly_extremal=nearly_extremal,
+        *things
+    )
+    return (filename, description)
+
+def save_words(
+    words=[],
+    *arg,
+    length          : int | tuple | None    = None,
+    exponent_free                           = None,
+    extremal        : bool | None           = None,
+    nearly_extremal : bool | None           = None,
+    file_name       : str | None            = None,
+    **kwargs
+):
+    from datetime import datetime
+    auto_filename, description = word_filename_description(
+        *arg,
+        length=length,
+        exponent_free=exponent_free,
+        extremal=extremal,
+        nearly_extremal=nearly_extremal,
+        **kwargs
+    )
+    if file_name is None:
+        file_name = auto_filename
+    
+    with open("data/" + file_name, "w") as f:
+        f.write("\n".join(words))
+    
+    with open("data/index.md", "a") as f:
+        f.write(f"| {datetime.now()} | {len(words)} | `{file_name}` | {description} |\n")
+    
+    return file_name
+
+def get_words(
+    *args,
+    length          : int | tuple | None    = None,
+    exponent_free                           = None,
+    extremal        : bool | None           = None,
+    nearly_extremal : bool | None           = None,
+    **kwargs
+):
+    path, _ = word_filename_description(
+        *args,
+        length = length,
+        exponent_free = exponent_free,
+        extremal = extremal,
+        nearly_extremal = nearly_extremal,
+        **kwargs
+    )
+    # print("Looking for", path)
+    max_length = 0
+    try:
+        with open("data/" + path, "r") as f:
+            words = []
+            for line in f.readlines():
+                word = line.strip()
+                max_length = max(max_length, len(word))
+                words.append(word)
+            return (True, words, max_length)
+    except FileNotFoundError:
+        print("Not Found")
+        return (False, [""], 0)
+    
+def append_words(
+    words,
+    *args,
+    # length          : int | tuple | None    = None,
+    # exponent_free                           = None,
+    # extremal        : bool | None           = None,
+    # nearly_extremal : bool | None           = None,
+    **kwargs
+):
+    success, recorded_words, _ = get_words(*args, **kwargs)
+    if not success:
+        return save_words(words, *args, **kwargs)
+    for word in words:
+        if word not in recorded_words:
+            recorded_words.append(word)
+    return save_words(sorted(recorded_words, key=lambda w: (len(w), w)), *args, **kwargs)
