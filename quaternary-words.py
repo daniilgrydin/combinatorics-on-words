@@ -6,7 +6,6 @@ from combinatorics.word import color_word, encode_short, get_permutations
 
 alphabet = "0123"
 alpha = ExtendedReal(7, 5, True)
-beta = ExtendedReal(7, 4, True)
 
 for length in range(1, 11):
     unique = generate_greedy_words_unique(
@@ -14,7 +13,7 @@ for length in range(1, 11):
         length,
         lambda word: is_suffix_exponent_free(word, alpha)
     )
-    with open("quaternary_words.txt", "a") as f:
+    with open("data/75_free_quaternary_words.txt", "a") as f:
         for word in unique:
             perms = get_permutations(word, alphabet)
             print(perms)

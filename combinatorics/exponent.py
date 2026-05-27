@@ -21,6 +21,9 @@ class Rational:
         self.denominator = denominator
     
     def is_less_than(self, other):
+        if isinstance(other, ExtendedReal) and other.plus:
+            return self.numerator * other.denominator <= other.numerator * self.denominator
+        
         return self.numerator * other.denominator < other.numerator * self.denominator
     
     def __float__(self):

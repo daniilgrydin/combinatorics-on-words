@@ -18,10 +18,10 @@ def is_uniform(morphism, alphabet):
 
 THUE_MORPHISM = dict_to_morphism({ "0": "01", "1": "10" })
 
-def is_synchronizing(morphism, alphabet):
-    for a in alphabet:
-        for b in alphabet:
-            for c in alphabet:
+def is_synchronizing(morphism, from_alphabet):
+    for a in from_alphabet:
+        for b in from_alphabet:
+            for c in from_alphabet:
                 word = morphism(a+b)
                 find_index = word.find(morphism(c))
                 if find_index != -1: ## if f(ab) = uf(c)v for some u,v
