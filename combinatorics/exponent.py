@@ -1,33 +1,242 @@
 class ExtendedReal:
     def __init__(self, numerator, denominator, plus):
-        self.numerator = numerator
-        self.denominator = denominator
+        self.rational = Rational(numerator, denominator)
         self.plus = plus
-        
-    def is_less_than(self, other):
-        if isinstance(other, Rational):
-            return self.numerator * other.denominator < other.numerator * self.denominator
-        else: raise ValueError(f"{type(other)} type is not supported.")
     
     def __float__(self):
-        return self.numerator / self.denominator
+        return float(self.rational)
     
     def __str__(self):
-        return f"{self.numerator}/{self.denominator}{"+" if self.plus else ""}"
+        return f"{self.rational}{"+" if self.plus else ""}"
+    
+    def __eq__(self, other):
+        if isinstance(other, ExtendedReal):
+            return (
+                self.plus == other.plus
+                and self.rational == self.rational
+            )
+        return self.rational == other and not self.plus
+
+    def __add__(self,other):
+        if isinstance(other, ExtendedReal):
+            rational_part = self.rational + other.rational
+            return ExtendedReal(rational_part.numerator, rational_part.denominator, self.plus or other.plus)
+        rational_part = self.rational + other
+        return ExtendedReal(
+            rational_part.numerator,
+            rational_part.denominator,
+            self.plus
+        )
+    
+    def __sub__ (self,other):
+        if isinstance(other, ExtendedReal):
+            rational_part = self.rational - other.rational
+            return ExtendedReal(rational_part.numerator, rational_part.denominator, self.plus or other.plus)
+        rational_part = self.rational - other
+        return ExtendedReal(
+            rational_part.numerator,
+            rational_part.denominator,
+            self.plus
+        )
+        
+    def __mul__(self, other):
+        if isinstance(other, ExtendedReal):
+            rational_part = self.rational * other.rational
+            return ExtendedReal(rational_part.numerator, rational_part.denominator, self.plus or other.plus)
+        rational_part = self.rational * other
+        return ExtendedReal(
+            rational_part.numerator,
+            rational_part.denominator,
+            self.plus
+        )
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+    
+    def __neg__(self):
+        rational_part = -self.rational
+        return ExtendedReal(rational_part.numerator, rational_part.denominator, self.plus)
+    
+    def __truediv__(self, other):
+        if isinstance(other, ExtendedReal):
+            rational_part = self.rational / other.rational
+            return ExtendedReal(rational_part.numerator, rational_part.denominator, self.plus or other.plus)
+        rational_part = self.rational / other
+        return ExtendedReal(
+            rational_part.numerator,
+            rational_part.denominator,
+            self.plus
+        )
+
+    def __lt__(self, other):
+        if isinstance(other, ExtendedReal):
+            if self.plus == other.plus or self.plus:
+                return self.rational < other.rational
+            else:
+                return self.rational <= other.rational
+        if  self.plus:
+            return self.rational < other
+        else:
+            return self.rational <= other
+
+    def __gt__(self, other):
+        if isinstance(other, ExtendedReal):
+            if self.plus == other.plus or self.plus:
+                return self.rational > other.rational
+            else:
+                return self.rational >= other.rational
+        if self.plus:
+            return self.rational > other
+        else:
+            return self.rational >= other
+    
+    def __le__(self, other):
+        if isinstance(other, ExtendedReal):
+            if self.plus == other.plus or other.plus:
+                return self.rational <= other.rational
+            else:
+                return self.rational < other.rational
+        if  self.plus:
+            return self.rational < other
+        else:
+            return self.rational <= other
+
+    def __ge__(self, other):
+        if isinstance(other, ExtendedReal):
+            if self.plus == other.plus or other.plus:
+                return self.rational >= other.rational
+            else:
+                return self.rational > other.rational
+        if self.plus:
+            return self.rational > other
+        else:
+            return self.rational >= other
+    
+    def __int__(self):
+        return int(self.rational)
     
 class Rational:
     def __init__(self, numerator, denominator):
         self.numerator = numerator
         self.denominator = denominator
     
-    def is_less_than(self, other):
-        return self.numerator * other.denominator < other.numerator * self.denominator
+    # def is_less_than(self, other):
+    #     return self.numerator * other.denominator < other.numerator * self.denominator
     
     def __float__(self):
         return self.numerator / self.denominator
     
     def __str__(self):
         return f"{self.numerator}/{self.denominator}"
+    
+    def is_less_than(self, other):
+        print("This method is depricated, you can now use inequalities with ExtendedReals and Rationals")
+        if isinstance(other, ExtendedReal):
+            if other.plus:
+                return self.numerator * other.rational.denominator <= other.rational.numerator * self.denominator
+            else:
+                return self.numerator * other.rational.denominator < other.rational.numerator * self.denominator
+        elif isinstance(other, Rational):
+            return self.numerator * other.denominator < other.numerator * self.denominator
+        else: raise ValueError(f"{type(other)} type is not supported.")
+    
+    def __eq__(self, other):
+        if isinstance(other, int):
+            return self.numerator == self.denominator * other
+        if isinstance(other, Rational):
+            return self.numerator * other.denominator == self.denominator * other.numerator
+        return NotImplemented
+    
+    def __add__(self, other):
+        if isinstance(other, int):
+            return Rational(
+                self.numerator + other * self.denominator,
+                self.denominator
+            )
+        if isinstance(other, Rational):
+            return Rational(
+                (self.numerator * other.denominator) + (other.numerator * self.denominator),
+                self.denominator * other.denominator
+            )
+        return NotImplemented
+    
+    def __sub__(self, other):
+        if isinstance(other, int):
+            return Rational(
+                self.numerator - other * self.denominator,
+                self.denominator
+            )
+        if isinstance(other, Rational):
+            return Rational(
+                (self.numerator * other.denominator) - (other.numerator * self.denominator),
+                self.denominator * other.denominator
+            )
+        return NotImplemented
+    
+    def __mul__(self, other):
+        if isinstance(other, int):
+            return Rational(
+                self.numerator * other,
+                self.denominator
+            )
+        if isinstance(other, Rational):
+            return Rational(
+                self.numerator * other.numerator,
+                self.denominator * other.denominator
+            )
+        return NotImplemented
+    
+    def __truediv__(self, other):
+        if isinstance(other, int):
+            return Rational(
+                self.numerator,
+                self.denominator * other
+            )
+        if isinstance(other, Rational):
+            return Rational(
+                self.numerator * other.denominator,
+                self.denominator * other.numerator
+            )
+        return NotImplemented
+    
+    def __lt__(self, other):
+        if isinstance(other, int):
+            return self.numerator < self.denominator * other
+        if isinstance(other, Rational):
+            return self.numerator * other.denominator < self.denominator * other.numerator
+        if isinstance(other, ExtendedReal):
+            if other.plus:
+                return self.numerator * other.rational.denominator <= other.rational.numerator * self.denominator
+            else:
+                return self.numerator * other.rational.denominator < other.rational.numerator * self.denominator
+        return NotImplemented
+        
+    def __le__(self, other):
+        if isinstance(other, int):
+            return self.numerator <= self.denominator * other
+        if isinstance(other, Rational):
+            return self.numerator * other.denominator <= self.denominator * other.numerator
+        return NotImplemented
+    
+    def __gt__(self, other):
+        if isinstance(other, int):
+            return self.numerator > self.denominator * other
+        if isinstance(other, Rational):
+            return self.numerator * other.denominator > self.denominator * other.numerator
+        return NotImplemented
+    
+    def __ge__(self, other):
+        if isinstance(other, int):
+            return self.numerator >= self.denominator * other
+        if isinstance(other, Rational):
+            return self.numerator * other.denominator >= self.denominator * other.numerator
+        return NotImplemented
+    
+    def __neg__(self):
+        return Rational(-self.numerator, self.denominator)
+
+    def __int__(self):
+        return self.numerator // self.denominator
 
 def get_critical_exponent(word):
     max_power = Rational(1,1)
@@ -45,7 +254,7 @@ def get_critical_exponent(word):
                 power_length = end-start+1
                 power = Rational(power_length, (power_length - repeated))
                 # print(power)
-                if max_power.is_less_than(power):
+                if max_power < power:
                     max_power = power
             else:
                 if repeated > 0:
@@ -71,10 +280,10 @@ def is_suffix_exponent_free(word, target_exponent: ExtendedReal):
             power_length = end+1
             power = Rational(power_length, (power_length - repeated))
             # print(word[:end],power)
-            if not power.is_less_than(target_exponent):
+            if power >= target_exponent:
                 # print(power)
                 return False
-            if max_power.is_less_than(power):
+            if max_power < power:
                 max_power = power
                 # max_power_start = start
         else:
