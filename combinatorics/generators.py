@@ -45,7 +45,7 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
 
         morphism_dict = {}
         for i in range(0, len(alpha_a)):
-            morphism[alpha_a[i]] = tuple[i]
+            morphism_dict[alpha_a[i]] = tuple[i]
 
         morphism = dict_to_morphism(morphism_dict)
 
