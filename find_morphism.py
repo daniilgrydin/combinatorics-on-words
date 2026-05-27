@@ -1,22 +1,17 @@
-from combinatorics.word import generate_greedy_words_unique, get_factors
-from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
-from combinatorics.extremal import is_nearly_extremal
+from combinatorics.exponent import ExtendedReal, is_exponent_free
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
 
 from itertools import combinations
 from math import comb
-import time
-
 
 alphabet = "012"
-max_q_to_check = 50
+min_q_to_check = 53
+max_q_to_check = 53
 
 alpha = ExtendedReal(7, 5, True) # quaternary
 beta = ExtendedReal(7, 4, True) # ternary
 
 quaternary_images = []
-
-morphism_rejections = {"not synchronizing":0}
 
 def check_valid_morphism(tuple):
     H0, H1, H2, H3 = tuple
@@ -28,37 +23,20 @@ def check_valid_morphism(tuple):
     })
 
     if not is_synchronizing(morphism, "0123"): 
-        morphism_rejections["not synchronizing"] += 1
         return False
 
     for q in quaternary_images:
         if not is_exponent_free(morphism(q), beta): 
-            #print(q)
-            morphism_rejections[q] = morphism_rejections.get(q,0) + 1
             return False
 
     return True
-
-def priority_buckets(words):
-    priority = {}
-    shared_prefixes = {}
-    shared_suffixes = {}
-    for w in words:
-        for i in range(1,len(w)):
-            prefix_key = w[:i]
-            shared_prefixes[prefix_key] = shared_prefixes.get(prefix_key,[]).append(w)
-            
-            suffix_key = w[-i:]
-            shared_suffixes[suffix_key] = shared_suffixes.get(suffix_key,[]).append(w)
-    
-
 
 with open("data/75_free_quaternary_words.txt", "r") as f:
     for q in f.readlines():
         if len(q) > 1:
             quaternary_images.append(q.strip())
 
-print("Loaded 7/4+-free quaternary words of length", len(quaternary_images))
+print(f"Loaded {len(quaternary_images)} 7/5+-free quaternary words")
 
 # unique = generate_greedy_words_unique(
 #     alphabet,
@@ -86,15 +64,15 @@ print("Loaded 7/4+-free quaternary words of length", len(quaternary_images))
 #             lambda w: is_exponent_free(w, beta))]
 
 nearly_extremal = []
-for line in open("data/nearly_extremal_74p_ternary.txt", 'r').readlines():
+for line in open("data/new_nearly_extremal_74p_ternary.txt", 'r').readlines():
     candidate = line.strip()
-    if candidate[-1] == '2' and len(candidate) <= max_q_to_check:
+    if candidate[:4] == '0102' and candidate[-4:] == '0212' and len(candidate) <= max_q_to_check:
         nearly_extremal.append(line.strip())
 print("Loaded nearly_extremal with size", len(nearly_extremal))
 
 # Create nearly_extremal_lengths. Each index holds words of the index's length.
 nearly_extremal_lengths = []
-for i in range(0, len(max(nearly_extremal, key=len)) + 1):
+for i in range(0, max_q_to_check+1):
     nearly_extremal_lengths.append([])
 # Populate nearly_extremal_lengths
 for n in nearly_extremal:
@@ -111,13 +89,12 @@ print(f"Total combinations to check: {total_combinations_to_check}")
 # for i in range(0, len(nearly_extremal), max(1, len(nearly_extremal)//5)):
 #     print(color_word(nearly_extremal[i], alphabet))
 
-count = 0
-for n in nearly_extremal_lengths:
-    if len(n) != 0:
-        print("q =",len(n[-1]))
-        print(morphism_rejections)
-    for combo in combinations(n, 4):
-        count += 1
+for i in range(min_q_to_check,max_q_to_check+1):
+
+    #print(morphism_rejections)
+    print("checking q =",i)
+
+    for combo in combinations(nearly_extremal_lengths[i], 4):
         # if not_synchronizing_count % 1000000 == 0:
         #     print(not_synchronizing_count,"morphisms rejected because they are not synchronizing")
         # if not_beta_free_count % 1000000 == 0:
@@ -131,4 +108,4 @@ for n in nearly_extremal_lengths:
         print("2", combo[2])
         print("3", combo[3])
         print()
-        break
+        

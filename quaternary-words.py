@@ -5,7 +5,7 @@ from combinatorics.square import is_square_free
 from combinatorics.word import color_word, encode_short, get_permutations
 
 alphabet = "0123"
-alpha = ExtendedReal(7, 5, True)
+alpha = ExtendedReal(7, 5, False)
 
 for length in range(1, 11):
     unique = generate_greedy_words_unique(
