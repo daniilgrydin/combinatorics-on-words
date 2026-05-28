@@ -302,6 +302,15 @@ def is_exponent_free(word, target_exponent: ExtendedReal):
             return False
     return True
 
+def get_min_critical_exponent(word):
+    from .word import get_extensions
+
+    critical_exponents = []
+    for e in get_extensions(word):
+        critical_exponents.append(get_critical_exponent(e))
+    
+    return min(critical_exponents)
+
     # for start in range(len(word)):
     #     repetition = 0
     #     for cursor in range(start+1, len(word)):

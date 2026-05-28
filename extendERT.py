@@ -18,7 +18,7 @@ def get_right_bookend(word, alphabet, exponent, MAX_ITERATIONS=-1):
         candidates = generate_greedy_words_unique(
             alphabet,
             1,
-            lambda w: is_exponent_free(w, exponent),
+            lambda w: is_suffix_exponent_free(w, exponent),
             seed = candidates
         )
         for c in candidates:
@@ -171,4 +171,4 @@ def extendERT(alphabet, known_lower_bound: ExtendedReal, MAX_ITERATIONS=1000, ST
 #     exponent_free=ExtendedReal(2,1,True)
 # ))
 
-extendERT("012", ExtendedReal(7,4,True))
+#extendERT("012", ExtendedReal(7,4,True))

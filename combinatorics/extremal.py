@@ -3,8 +3,8 @@
 def is_extremal(word, alphabet, filter):
     from .word import get_extensions
 
-    # if not filter(word):
-    #     return False
+    if not filter(word):
+        return False
 
     extensions = get_extensions(word, alphabet)
     for extension in extensions:
