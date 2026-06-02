@@ -7,7 +7,7 @@
 # max_q is the maximum uniform of the morphism desired (should not be greater than the len of words in words_file_b)
 # filter is a function of a word that can narrow down the number of combinations to check (eg. words beginning with 0102 and ending with 0212)
 # output is a file to write the morphisms to
-def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, beta, min_q, max_q, filter, output):
+def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, beta, min_q, max_q, filter, output, STOP=-1):
     from math import comb
     from itertools import combinations
 
@@ -60,10 +60,12 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
         return True
     
     morphisms = []
+    found = 0
 
     for i in range(min_q, max_q+1):
+        if found == STOP:
+            break
         print("checking q =",i)
-
         for combo in combinations(nearly_extremal_lengths[i], len(alpha_a)):
             if not check_valid_morphism(combo): continue
             print("Found morphism!\a")
@@ -73,6 +75,9 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
                 result_morphism_dict[alpha_a[i]] = combo[i]
             morphisms.append(result_morphism_dict)
             print()
+            found += 1
+            if found == STOP:
+                break
 
     out_file = open(output, 'w')
     for m in morphisms:

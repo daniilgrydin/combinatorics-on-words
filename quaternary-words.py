@@ -8,14 +8,13 @@ alphabet = "0123"
 alpha = ExtendedReal(7, 5, True)
 
 for length in range(1, 11):
-    unique = backtrack(
+    unique = generate_greedy_words_unique(
         alphabet,
         length,
         lambda word: is_suffix_exponent_free(word, alpha)
     )
     with open("data/75_free_quaternary_words.txt", "a") as f:
         for word in unique:
-            #perms = get_permutations(word, alphabet)
-            #print(perms)
-
-            f.write(word + "\n")
+            perms = get_permutations(word, alphabet)
+            for p in perms:
+                f.write(p + "\n")

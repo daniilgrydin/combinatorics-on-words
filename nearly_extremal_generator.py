@@ -4,7 +4,7 @@ from combinatorics.extremal import is_nearly_extremal
 
 #beta = ExtendedReal(7,4,True)
 
-def generate_nearly_extremal(alphabet, max_length, beta, file_path):
+def generate_nearly_extremal(alphabet, min_length, max_length, beta, file_path, prefix="", suffix=""):
 
     unique = generate_greedy_words_unique(
         alphabet,
@@ -14,7 +14,7 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path):
 
     nearly_extremal = []
 
-    for length in range(2,max_length):
+    for length in range(2,max_length+1):
         print(f"Current length: {length}...")
 
         unique = generate_greedy_words_unique(
@@ -24,18 +24,20 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path):
             seed = unique
         )
 
+        if length < min_length: continue
 
         new_nearly_extremal = [
             word
             for word in unique
-            if is_nearly_extremal(
+            if word[:len(prefix)] == prefix and word[-len(suffix):] == suffix
+                and is_nearly_extremal(
                 word,
                 alphabet,
                 lambda w: is_exponent_free(w, beta))]
-        
+                
         nearly_extremal.extend(new_nearly_extremal)
-        
+
         with open(file_path, "w") as f:
             f.write("\n".join(nearly_extremal))
 
-generate_nearly_extremal("012", 60, ExtendedReal(7,4,True), "data/new_nearly_extremal_74p_ternary.txt")
+generate_nearly_extremal("012", 0, 80, ExtendedReal(7,4,True), "data/prescribed_nearly_extremal_74p_ternary.txt", "010210120210201", "120210201210212")

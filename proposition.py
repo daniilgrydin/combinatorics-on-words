@@ -1,31 +1,41 @@
 # Proposition: There are arbitrarily long (7/4+, 23/13)-extremal ternary words.
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
-from combinatorics.word import get_extensions, backtrack
-from combinatorics.exponent import get_critical_exponent, ExtendedReal, is_suffix_exponent_free, is_exponent_free
+from combinatorics.word import get_extensions, backtrack, period
+from combinatorics.exponent import get_critical_exponent, ExtendedReal, Rational, is_suffix_exponent_free, is_exponent_free
 
-def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, beta, gamma):
-    r_prime = get_r_prime(morphism_dict, r)
-    s_prime = get_s_prime(morphism_dict, s)
-    tr = get_tr()
-    ts = get_ts()
-    q = len(morphism_dict[0])
+def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, beta, gamma, tr, ts):
+    q = len(list(morphism_dict.values())[0])
     morphism = dict_to_morphism(morphism_dict)
 
     internal_extensions_check(morphism, from_alphabet, gamma, q)
     left_and_internal_extensions_check(morphism, from_alphabet, gamma, q, r)
     right_and_internal_extensions_check(morphism, from_alphabet, gamma, q, s)
     is_synchronizing_check(morphism, from_alphabet)
-    lemma_23_check(morphism, alpha, beta, q, from_alphabet)
-    check_tr_ts_occurrences(morphism, from_alphabet, tr, ts)
-    check_tr_ts_occurrences_fy(morphism, alpha, ts, tr)
+    #lemma_23_check(morphism, alpha, beta, q, from_alphabet)
+
+    r_prime = get_r_prime(morphism_dict, r)
+    s_prime = get_s_prime(morphism_dict, s)
+
+    max_z_size = max(len(r), len(s))
+
+    print(f"r': {r_prime}.")
+    print(f"s': {s_prime}.")
+
+    check_tr_occurrences(morphism, from_alphabet, r, tr, s)
+    check_ts_occurrences(morphism, from_alphabet, s, ts, r)
+    check_tr_ts_occurrences_fy(morphism, from_alphabet, alpha, tr, ts)
+
+    z_check(morphism, from_alphabet, r, s, beta, max_z_size)
+
+    print("Done!")
 
 
 # Every internal extension of f(c) has a factor of exponent >= 17/7
 def internal_extensions_check(f, from_alphabet, gamma, q):
     for c in from_alphabet:
         for e in get_extensions(f(c), positions=range(1,q)):
-            if get_critical_exponent(e) < gamma:
-                print(f"f({c}) has an exponent less than {gamma}.")
+            if is_exponent_free(e, gamma):
+                print(f"f({c}) has an extension with no exponent greater than {gamma}.")
                 return False
     print(f"Every internal extension of f(c) has a factor of exponent >= {gamma}.")
     return True
@@ -34,8 +44,9 @@ def internal_extensions_check(f, from_alphabet, gamma, q):
 def left_and_internal_extensions_check(f, from_alphabet, gamma, q, r):
     for c in from_alphabet:
         for e in get_extensions(r + f(c), positions=range(0,q+len(r))):
-            if get_critical_exponent(e) < gamma:
-                print(f"rf({c}) has an exponent less than {gamma}.")
+            if is_exponent_free(e, gamma):
+                print(f"rf({c}) has an extension with no exponent greater than {gamma}.")
+                print(e)
                 return False
     print(f"Every left and internal extension of rf(c) has a factor of exponent >= {gamma}.")
     return True
@@ -44,8 +55,8 @@ def left_and_internal_extensions_check(f, from_alphabet, gamma, q, r):
 def right_and_internal_extensions_check(f, from_alphabet, gamma, q, s):
     for c in from_alphabet:
         for e in get_extensions(f(c) + s, positions=range(1,q+len(s)+1)):
-            if get_critical_exponent(e) < gamma:
-                print(f"f({c})s has an exponent less than {gamma}.")
+            if is_exponent_free(e, gamma):
+                print(f"f({c})s has an extension with no exponent greater than {gamma}.")
                 return False
     print(f"Every right and internal extension of f(c)s has a factor of exponent >= {gamma}.")
     return True
@@ -79,63 +90,109 @@ def lemma_23_check(f, alpha, beta, q, from_alphabet):
     print(f"For all {alpha}-free words in {from_alphabet}, f(x) is {beta}-free.")
     return True
 
-def get_r_prime():
-    r_prime = ""
+def get_r_prime(morphism_dict, r):
+    result = ""
+    for i in range(1, len(r)+1):
+        for image in list(morphism_dict.values()):
+            if image[-i] != r[-i]:
+                return result[::-1]
+        result += r[-i]
      
-
-def get_s_prime():
-    pass
-
-def get_tr():
-    pass
-
-def get_ts():
-    pass
+def get_s_prime(morphism_dict, s):
+    result = ""
+    for i in range(0, len(s)):
+        for image in list(morphism_dict.values()):
+            if image[i] != s[i]:
+                return result
+        result += s[i]
 
 # For every c in "0123", tr occurs exactly once in rf(c) and does not occur in f(c)s and analogously for tl.
-def check_tr_ts_occurrences(f, from_alphabet, tr, ts):
+def check_tr_occurrences(f, from_alphabet, r, tr, s):
     for c in from_alphabet:
-        rfc = r[c] + f(c)
-        fcs = f(c) + s[c]
-        # tr first
-        if str(rfc).find(tr) != str(rfc).rfind(tr) or str(rfc) != -1:
+        rfc = r + f(c)
+        fcs = f(c) + s
+        if str(rfc).find(tr) != str(rfc).rfind(tr) or str(rfc) == -1:
             print(f"tr does not occur exactly once in rf({c}).")
             return False
         if str(fcs).find(tr) != -1:
             print(f"tr occurs in f({c})s.")
             return False
+
+    print("tr occurs exactly as it should.")
+    return True
+
+def check_ts_occurrences(f, from_alphabet, s, ts, r):
+    for c in from_alphabet:
+        rfc = r + f(c)
+        fcs = f(c) + s
         # ts
-        if str(fcs).find(ts) != str(fcs).rfind(ts) or str(fcs) != -1:
+        if str(fcs).find(ts) != str(fcs).rfind(ts) or str(fcs) == -1:
             print(f"ts does not occur exactly once in f({c})s.")
             return False
         if str(rfc).find(ts) != -1:
             print(f"ts occurs in rf({c}).")
             return False
-    print("tr and ts occur exactly as they should.")
+        
+    print("ts occurs exactly as it should.")
     return True
 
-def check_tr_ts_occurrences_fy(from_alphabet, alpha, tr, ts):
+def check_tr_ts_occurrences_fy(f, from_alphabet, alpha, tr, ts):
     Y = backtrack(from_alphabet, 2, lambda w: is_suffix_exponent_free(w, alpha))
     for y in Y:
-        if str(f(y)).find(tr) == -1:
+        if f(y).find(tr) != -1:
             print(f"tr occurs in f({y})")
             return False
-        if str(f(y)).find(ts) == -1:
+        if f(y).find(ts) != -1:
             print(f"ts occurs in f({y})")
             return False
     print(f"tr and ts occur exactly as they should in {alpha}-free words over {from_alphabet} of length 2.")
     return True
 
+def z_check(f, from_alphabet, r, s, beta, z_size):
+    for i in range(1,z_size+1):
+        for j in range(0,len(r)):
+            for c in from_alphabet:
+                if not is_exponent_free((r+f(c))[j:j+i], beta):
+                    print("w contains z.")
+                    return False
+                
+    for i in range(1,z_size+1):
+        for j in range(1,len(s)+1):
+            for c in from_alphabet:
+                if not is_exponent_free((f(c)+s)[-j:-(j+i)], beta):
+                    print("w contains z.")
+                    return False
+    
+    print("w does not contain z.")
+    return True
+
+
+
 check_proposition({
-    '0':'01020120210121020120212010201210120102120210201210212',
-    '1':'01020120210121020120212010210121020102120210201210212',
-    '2':'01020120210201210120212012102010210120210201210120212',
-    '3':'01021012021020102120121020120210201021012010201210212'
+    '0':'01021012021020102101210212010201210120102120210201210212',
+    '1':'01021012021020102120121012021201021012102120210201210212',
+    '2':'01021012021020102120121020120212010201210120210201210212',
+    '3':'01021012021020102120210121020102101201020120210201210212'
     },
-    '',
-    '',
+    '010210120210201210212',
+    '01210120102120121',
     '012',
     '0123',
     ExtendedReal(7,5,True),
     ExtendedReal(7,4,True),
-    ExtendedReal(23,13,False))
+    ExtendedReal(37,21,False),
+    '0210120210201210212',
+    '20212012')
+
+# check_proposition({
+#     '0':'0011011001001100101100110110010011',
+#     '1':'0011011001001101100110100110010011',
+#     '2':'0011011001101001100100110110010011'
+#     },
+#     '01101100110110011001010011',
+#     '00110101100110010011001001',
+#     '01',
+#     '012',
+#     ExtendedReal(2,1,False),
+#     ExtendedReal(18,7,True),
+#     ExtendedReal(8,3,False))

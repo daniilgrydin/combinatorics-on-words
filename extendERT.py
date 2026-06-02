@@ -1,6 +1,6 @@
 from combinatorics.word import generate_greedy_words_unique, save_words, get_words, get_permutations, append_words
 from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
-from combinatorics.extremal import is_nearly_extremal, is_right_extremal
+from combinatorics.extremal import is_nearly_extremal, is_right_extremal, is_left_extremal
 from combinatorics.alphabet import STANDARD_ALPHABET
 
 # b=7/4, n=3, m=4, a=7/5, checked up to length 43 and nothing. 
@@ -28,6 +28,41 @@ def get_right_bookend(word, alphabet, exponent, MAX_ITERATIONS=-1):
 
 def get_left_bookend(word, alphabet, exponent, MAX_ITERATIONS=-1):
     return get_right_bookend(word[::-1], alphabet, exponent, MAX_ITERATIONS)[::-1]
+
+def get_all_right_bookends(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    if MAX_ITERATIONS == -1:
+        MAX_ITERATIONS = len(word)
+    candidates = [""]
+    result = []
+    for _ in range(MAX_ITERATIONS):
+        candidates = generate_greedy_words_unique(
+            alphabet,
+            1,
+            lambda w: is_suffix_exponent_free(w, exponent),
+            seed = candidates
+        )
+        for c in candidates:
+            if is_right_extremal(word + c, alphabet, lambda w: is_exponent_free(w, exponent)):
+                result.append(c)
+    return result
+
+def get_all_left_bookends(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    if MAX_ITERATIONS == -1:
+        MAX_ITERATIONS = len(word)
+    candidates = [""]
+    result = []
+    for _ in range(MAX_ITERATIONS):
+        candidates = generate_greedy_words_unique(
+            alphabet,
+            1,
+            lambda w: is_suffix_exponent_free(w, exponent),
+            seed = candidates
+        )
+        for c in candidates:
+            if is_left_extremal(c + word, alphabet, lambda w: is_exponent_free(w, exponent)):
+                result.append(c)
+    return result
+
 
 def iterate_exponent_free_words(*, words=[""], alphabet="01", exponent=ExtendedReal(2,1,True)):
     r"""

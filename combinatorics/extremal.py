@@ -74,3 +74,30 @@ def is_right_extremal(word, alphabet, filter):
             found_left_extension = True
 
     return True
+
+def is_left_extremal(word, alphabet, filter):
+    from .word import get_extensions
+
+    if not filter(word):
+        # print("Word")
+        return False
+
+    # checking the inside extensions and the left extensions
+    # print("For internals")
+    extensions = get_extensions(word, alphabet, range(0, len(word)))
+    for extension in extensions:
+        if filter(extension):
+            # print("Internal")
+            # print(extension)
+            return False
+    
+    # checking the right extensions
+    found_right_extension = False
+    right_extensions = get_extensions(word, alphabet, [len(word)])
+    for extension in right_extensions:
+        if filter(extension):
+            if found_right_extension:
+                return False
+            found_right_extension = True
+
+    return True

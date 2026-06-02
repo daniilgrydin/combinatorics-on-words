@@ -218,7 +218,7 @@ def get_factors(w):
     return result
 
 
-def p(w):
+def period(w):
     n = len(w)
     for p in range(1, n):
         returnFlag = True
