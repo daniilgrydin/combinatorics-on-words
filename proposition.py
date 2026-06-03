@@ -1,9 +1,9 @@
 # Proposition: There are arbitrarily long (7/4+, 23/13)-extremal ternary words.
 from combinatorics.morphism import dict_to_morphism, is_synchronizing
-from combinatorics.word import get_extensions, backtrack, period
+from combinatorics.word import get_extensions, backtrack, period, index_all_occurrences
 from combinatorics.exponent import get_critical_exponent, ExtendedReal, Rational, is_suffix_exponent_free, is_exponent_free
 
-def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, beta, gamma, tr, ts):
+def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, beta, gamma):
     q = len(list(morphism_dict.values())[0])
     morphism = dict_to_morphism(morphism_dict)
 
@@ -15,17 +15,16 @@ def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, be
 
     r_prime = get_r_prime(morphism_dict, r)
     s_prime = get_s_prime(morphism_dict, s)
+    tr = r[-len(r_prime)-1] + r_prime
+    ts = s_prime + s[len(s_prime)]
 
-    max_z_size = max(len(r), len(s))
+    print(f"r' = {r_prime} tr = {tr}")
+    print(f"s' = {s_prime} ts = {ts}")
 
-    print(f"r': {r_prime}.")
-    print(f"s': {s_prime}.")
+    check_tr_occurrences(morphism, from_alphabet, tr, alpha)
+    check_for_all_preimages(morphism, 3, from_alphabet, alpha, beta, r, s)
 
-    check_tr_occurrences(morphism, from_alphabet, r, tr, s)
-    check_ts_occurrences(morphism, from_alphabet, s, ts, r)
-    check_tr_ts_occurrences_fy(morphism, from_alphabet, alpha, tr, ts)
-
-    z_check(morphism, from_alphabet, r, s, beta, max_z_size)
+    #z_check(morphism, from_alphabet, r, s, beta, max_z_size)
 
     print("Done!")
 
@@ -106,47 +105,89 @@ def get_s_prime(morphism_dict, s):
                 return result
         result += s[i]
 
-# For every c in "0123", tr occurs exactly once in rf(c) and does not occur in f(c)s and analogously for tl.
-def check_tr_occurrences(f, from_alphabet, r, tr, s):
-    for c in from_alphabet:
-        rfc = r + f(c)
-        fcs = f(c) + s
-        if str(rfc).find(tr) != str(rfc).rfind(tr) or str(rfc) == -1:
-            print(f"tr does not occur exactly once in rf({c}).")
-            return False
-        if str(fcs).find(tr) != -1:
-            print(f"tr occurs in f({c})s.")
-            return False
-
-    print("tr occurs exactly as it should.")
+def check_tr_occurrences(f, from_alphabet, tr, alpha):
+    preimages = backtrack(from_alphabet, 2, lambda w: is_suffix_exponent_free(w, alpha))
+    q = len(f(from_alphabet[0]))
+    for p in preimages:
+        indices = index_all_occurrences(f(p), tr)
+        for i in indices:
+            if i % q != q - len(tr):
+                print(f"tr found at {i} in f({p}).")
+                return False
+    
+    print("tr occurs as it should for preimages of length 2.")
     return True
 
-def check_ts_occurrences(f, from_alphabet, s, ts, r):
-    for c in from_alphabet:
-        rfc = r + f(c)
-        fcs = f(c) + s
-        # ts
-        if str(fcs).find(ts) != str(fcs).rfind(ts) or str(fcs) == -1:
-            print(f"ts does not occur exactly once in f({c})s.")
-            return False
-        if str(rfc).find(ts) != -1:
-            print(f"ts occurs in rf({c}).")
-            return False
+def check_for_all_preimages(f, size_to_check_to, from_alphabet, alpha, beta, r, s):
+    for i in range(1,size_to_check_to + 1):
+        to_check = backtrack(from_alphabet, i, lambda w: is_suffix_exponent_free(w, alpha))
+        for w in to_check:
+            if not is_exponent_free(r + f(w), beta):
+                print(f"rf({w}) is not {beta}-free.")
+                return False
+            if not is_exponent_free(f(w) + s, beta):
+                print(f"rf({w}) is not {beta}-free.")
+                return False
+    print(f"f maps all {alpha}-free words to {beta}-free words up to size {size_to_check_to}.")
+    return True
+
+    # for c in "0123":
+    #     to_check.append(r+morphism(c))
+    #     to_check.append(morphism(c)+s)
+
+    # rp = '0120210201210212'
+
+    # for i in to_check:
+    #     print("\nChecking",i)
+    #     found = []
+    #     check = 0
+    #     while i.find(rp, check) != -1:
+    #         found.append(i.find(rp, check))
+    #         check += i.find(rp, check) + len(rp)
+
+    #     print("Found rp at",found)
+
+# # For every c in "0123", tr occurs exactly once in rf(c) and does not occur in f(c)s and analogously for tl.
+# def check_tr_occurrences(f, from_alphabet, r, tr, s):
+#     for c in from_alphabet:
+#         rfc = r + f(c)
+#         fcs = f(c) + s
+#         if str(rfc).find(tr) != str(rfc).rfind(tr) or str(rfc) == -1:
+#             print(f"tr does not occur exactly once in rf({c}).")
+#             return False
+#         if str(fcs).find(tr) != -1:
+#             print(f"tr occurs in f({c})s.")
+#             return False
+
+#     print("tr occurs exactly as it should.")
+#     return True
+
+# def check_ts_occurrences(f, from_alphabet, s, ts, r):
+#     for c in from_alphabet:
+#         rfc = r + f(c)
+#         fcs = f(c) + s
+#         # ts
+#         if str(fcs).find(ts) != str(fcs).rfind(ts) or str(fcs) == -1:
+#             print(f"ts does not occur exactly once in f({c})s.")
+#             return False
+#         if str(rfc).find(ts) != -1:
+#             print(f"ts occurs in rf({c}).")
+#             return False
         
-    print("ts occurs exactly as it should.")
-    return True
+#     print("ts occurs exactly as it should.")
+#     return True
 
-def check_tr_ts_occurrences_fy(f, from_alphabet, alpha, tr, ts):
-    Y = backtrack(from_alphabet, 2, lambda w: is_suffix_exponent_free(w, alpha))
-    for y in Y:
-        if f(y).find(tr) != -1:
-            print(f"tr occurs in f({y})")
-            return False
-        if f(y).find(ts) != -1:
-            print(f"ts occurs in f({y})")
-            return False
-    print(f"tr and ts occur exactly as they should in {alpha}-free words over {from_alphabet} of length 2.")
-    return True
+# def check_tr_ts_occurrences_fy(f, from_alphabet, alpha, tr, ts):
+#     Y = backtrack(from_alphabet, 2, lambda w: is_suffix_exponent_free(w, alpha))
+#     for y in Y:
+#         if f(y).find(tr) != -1:
+#             print(f"tr occurs in f({y})")
+#             return False
+#         if f(y).find(ts) != -1:
+#             print(f"ts occurs in f({y})")
+#             return False
+#     print(f"tr and ts occur exactly as they should in {alpha}-free words over {from_alphabet} of length 2.")
+#     return True
 
 def z_check(f, from_alphabet, r, s, beta, z_size):
     for i in range(1,z_size+1):
@@ -196,9 +237,7 @@ check_proposition({
     '0123',
     ExtendedReal(7,5,True),
     ExtendedReal(7,4,True),
-    ExtendedReal(37,21,False),
-    '0120210201210212',
-    '20212012')
+    ExtendedReal(37,21,False))
 
 # check_proposition({
 #     '0':'0011011001001100101100110110010011',

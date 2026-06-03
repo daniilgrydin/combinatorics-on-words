@@ -523,3 +523,11 @@ def append_words(
         if word not in recorded_words:
             recorded_words.append(word)
     return save_words(sorted(recorded_words, key=lambda w: (len(w), w)), *args, **kwargs)
+
+def index_all_occurrences(word, subword):
+    indices = []
+    n = len(subword)
+    for i in range(0, len(word)-n+1):
+        if word[i:i+n] == subword:
+            indices.append(i)
+    return indices

@@ -81,7 +81,6 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
 
     out_file = open(output, 'w')
     for m in morphisms:
-        out_file.write("\n-")
         for v in m.values():
             out_file.write("\n" + str(v))
         out_file.write("\n-")
