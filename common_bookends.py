@@ -45,21 +45,23 @@ def has_common_bookends(morphisms, alphabet, beta, max_bookend_size):
             print("Right:", right)
         print()
 
-def determine_common_right_bookend(morphism, alphabet, beta, candidate_bookends):
+def determine_common_right_bookends(morphism, alphabet, beta, candidate_bookends):
+    result = []
     for c in candidate_bookends:
         for i in morphism:
             if not is_right_extremal(i + c, alphabet, lambda w: is_exponent_free(w, beta)):
                 break
-        return c
-    print("No common right bookend")
-    return None
+        result.append(c)
+    return result
 
 
-def determine_common_left_bookend(morphism, alphabet, beta, candidate_bookends):
+def determine_common_left_bookends(morphism, alphabet, beta, candidate_bookends):
+    result = []
     for c in candidate_bookends:
         for i in morphism:
             if not is_left_extremal(c + i, alphabet, lambda w: is_exponent_free(w, beta)):
                 break
-        return c
-    print("No common right bookend")
-    return None
+        result.append(c)
+    return result
+
+def is_bookend_ideal
