@@ -22,7 +22,7 @@ def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, be
     print(f"s' = {s_prime} ts = {ts}")
 
     check_tr_occurrences(morphism, from_alphabet, tr, alpha)
-    check_for_all_preimages(morphism, 3, from_alphabet, alpha, beta, r, s)
+    check_for_all_preimages(morphism, 3, from_alphabet, alpha, beta)
 
     #z_check(morphism, from_alphabet, r, s, beta, max_z_size)
 
@@ -118,15 +118,12 @@ def check_tr_occurrences(f, from_alphabet, tr, alpha):
     print("tr occurs as it should for preimages of length 2.")
     return True
 
-def check_for_all_preimages(f, size_to_check_to, from_alphabet, alpha, beta, r, s):
+def check_for_all_preimages(f, size_to_check_to, from_alphabet, alpha, beta):
     for i in range(1,size_to_check_to + 1):
         to_check = backtrack(from_alphabet, i, lambda w: is_suffix_exponent_free(w, alpha))
         for w in to_check:
-            if not is_exponent_free(r + f(w), beta):
-                print(f"rf({w}) is not {beta}-free.")
-                return False
-            if not is_exponent_free(f(w) + s, beta):
-                print(f"rf({w}) is not {beta}-free.")
+            if not is_exponent_free(f(w), beta):
+                print(f"f({w}) is not {beta}-free.")
                 return False
     print(f"f maps all {alpha}-free words to {beta}-free words up to size {size_to_check_to}.")
     return True
@@ -232,7 +229,7 @@ check_proposition({
     '3':'01021012021020102120210121021201021012021201020120210201210212'
     },
     '010210120210201210212',
-    '01210120102120121',
+    '010210120210201210212',
     '012',
     '0123',
     ExtendedReal(7,5,True),

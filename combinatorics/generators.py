@@ -91,22 +91,36 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
 # alphabet is what nearly extremal words will be made over
 # max_length is the size [1,max_length] of nearly_extremal words to make
 # file_path is the file that the nearly extremal words will be written to 
-def generate_nearly_extremal(alphabet, max_length, beta, file_path):
+def generate_nearly_extremal(alphabet, max_length, beta, file_path,  prefix="", suffix=""):
     from .word import generate_greedy_words_unique
     from .exponent import is_suffix_exponent_free, is_exponent_free
     from .extremal import is_nearly_extremal
+
+
+    nearly_extremal = []
+    
+    try:
+        print("Reading from file.")
+        for l in open(file_path, 'r').readlines():
+            nearly_extremal.append(l.strip())
+        print(f"{len(nearly_extremal)} words loaded from file.")
+        if len(nearly_extremal) > 0:
+            existing_length = len(nearly_extremal[-1])
+        else:
+            existing_length = 1
+    except FileNotFoundError:
+        existing_length = 1
+
 
     print(f"Generating nearly extremal {beta}-free words over {alphabet}")
 
     unique = generate_greedy_words_unique(
         alphabet,
-        1,
+        existing_length,
         lambda word: is_suffix_exponent_free(word, beta)
     )
 
-    nearly_extremal = []
-
-    for length in range(2,max_length):
+    for length in range(existing_length+1, max_length+1):
         print(f"Currently generating length: {length}...")
 
         unique = generate_greedy_words_unique(
@@ -116,16 +130,16 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path):
             seed = unique
         )
 
-        new_nearly_extremal = [
-            word
-            for word in unique
+        for w in unique:
             if is_nearly_extremal(
-                word,
+                w,
                 alphabet,
-                lambda w: is_exponent_free(w, beta))]
-        
-        nearly_extremal.extend(new_nearly_extremal)
-        
+                lambda w: is_exponent_free(w, beta) 
+                ) \
+                and (w[:len(prefix)] == prefix or prefix == "")\
+                and (w[-len(suffix):] == suffix or suffix == ""):
+                nearly_extremal.append(w)
+                
         with open(file_path, "w") as f:
             f.write("\n".join(nearly_extremal))
 
