@@ -79,26 +79,31 @@ def is_left_bookend_ideal(morphism_images, bookend):
         elif pass_count != len(morphism_images):
             return False
         
-def find_ideal_bookends(morphisms, alphabet, beta, max_bookend_size, print=True):
+def find_ideal_bookends(morphisms, alphabet, beta, max_bookend_size, do_print=True):
     left_result = []
     right_result = []
+    count = 0
     for m in morphisms:
+        count += 1
+        if do_print:
+            print("Processing morphism", count, "...")
+
         left = find_common_left_bookends(m, alphabet, beta, max_bookend_size)
         right = find_common_right_bookends(m, alphabet, beta, max_bookend_size)
         if len(left) > 0 and len(right) > 0:
-            if print:
+            if do_print:
                 print("\nMorphism:",m)
                 print("Left:",left)
                 print("Right:",right)
             for l in left:
                 if is_left_bookend_ideal(m, l):
                     left_result.append(l)
-                    if print:
+                    if do_print:
                         print(l,"is left ideal")
             for r in right:
                 if is_right_bookend_ideal(m, r):
                     right_result.append(r)
-                    if print:
+                    if do_print:
                         print(r,"is right ideal")
 
     return left_result, right_result

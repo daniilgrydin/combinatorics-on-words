@@ -531,3 +531,36 @@ def index_all_occurrences(word, subword):
         if word[i:i+n] == subword:
             indices.append(i)
     return indices
+
+def get_common_prefix(words):
+    common_prefix = ""
+    for i in range(len(min(words))):
+        current_letter = words[0][i] 
+        for w in words:
+            if w[i] != current_letter:
+                return common_prefix
+        common_prefix += current_letter
+    return common_prefix
+
+def get_common_suffix(words):
+    common_suffix = ""
+    for i in range(1, len(min(words))+1):
+        current_letter = words[0][-i] 
+        for w in words:
+            if w[-i] != current_letter:
+                return common_suffix[::-1]
+        common_suffix += current_letter
+    return common_suffix[::-1]
+
+def load_words_by_length(file_path):
+    result = [['']]
+    n = 0
+    for line in open(file_path, 'r').readlines():
+        index = len(line.strip())
+        if index > n:
+            for i in range(n+1, index+1):
+                result.append([])
+            n = index
+
+        result[index].append(line.strip())
+    return result

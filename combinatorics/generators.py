@@ -65,8 +65,14 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
     for i in range(min_q, max_q+1):
         if found == STOP:
             break
-        print("checking q =",i)
+        print("checking q =", i)
+
+        combo_count = 0
         for combo in combinations(nearly_extremal_lengths[i], len(alpha_a)):
+            if combo_count % 25 == 0:
+                print("Checked",combo_count,"morphisms.")
+            combo_count += 1
+            
             if not check_valid_morphism(combo): continue
             print("Found morphism!\a")
             result_morphism_dict = {}
@@ -79,12 +85,13 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
             if found == STOP:
                 break
 
-    out_file = open(output, 'w')
-    for m in morphisms:
-        for v in m.values():
-            out_file.write("\n" + str(v))
-        out_file.write("\n-")
-    out_file .close()
+    if len(morphisms) >= len(alpha_a):
+        out_file = open(output, 'w')
+        for m in morphisms:
+            for v in m.values():
+                out_file.write("\n" + str(v))
+            out_file.write("\n-")
+        out_file .close()
     
     print("Done")
 
@@ -92,10 +99,9 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
 # max_length is the size [1,max_length] of nearly_extremal words to make
 # file_path is the file that the nearly extremal words will be written to 
 def generate_nearly_extremal(alphabet, max_length, beta, file_path,  prefix="", suffix=""):
-    from .word import generate_greedy_words_unique
+    from .word import generate_greedy_words
     from .exponent import is_suffix_exponent_free, is_exponent_free
     from .extremal import is_nearly_extremal
-
 
     nearly_extremal = []
     
@@ -112,35 +118,91 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path,  prefix="", 
         existing_length = 1
 
 
+    existing_length = max(existing_length - len(prefix) - len(suffix), 1)
     print(f"Generating nearly extremal {beta}-free words over {alphabet}")
 
-    unique = generate_greedy_words_unique(
+    words = generate_greedy_words(
         alphabet,
         existing_length,
         lambda word: is_suffix_exponent_free(word, beta)
     )
 
-    for length in range(existing_length+1, max_length+1):
-        print(f"Currently generating length: {length}...")
 
-        unique = generate_greedy_words_unique(
+    for length in range(existing_length+1, max_length - len(prefix) - len(suffix) + 1):
+        print(f"Currently generating length: {length + len(prefix) + len(suffix)}...")
+
+        words = generate_greedy_words(
             alphabet,
             1,
             lambda word: is_suffix_exponent_free(word, beta),
-            seed = unique
+            seed = words
         )
 
-        for w in unique:
+        count = 0
+
+        for w in words:
             if is_nearly_extremal(
-                w,
-                alphabet,
-                lambda w: is_exponent_free(w, beta) 
-                ) \
-                and (w[:len(prefix)] == prefix or prefix == "")\
-                and (w[-len(suffix):] == suffix or suffix == ""):
-                nearly_extremal.append(w)
-                
-        with open(file_path, "w") as f:
+            prefix + w + suffix,
+            alphabet,
+            lambda w: is_exponent_free(w, beta) 
+            ): 
+                nearly_extremal.append(prefix + w + suffix)
+                count += 1
+                if count % 10 == 0:
+                    print(f"{count} found...")
+                    with open(file_path, 'w') as f:
+                        f.write("\n".join(nearly_extremal))
+        
+        with open(file_path, 'w') as f:
             f.write("\n".join(nearly_extremal))
+            
 
     print("Done")
+
+
+def find_ideal_morphism(morphism_images_file, image_count, max_bookend_size = -1, min_A_size = 0, B_seed_file = None, do_print = True):
+    from decomposition import get_bookends_from_morphism
+    from common_bookends import is_left_bookend_ideal, is_right_bookend_ideal
+    from combinatorics.word import load_words_by_length
+
+    morphisms = []
+    current = []
+    for line in open(morphism_images_file, 'r').readlines():
+        current.append(line.strip())
+        if len(current) == image_count:
+            morphisms.append(current)
+            current.clear()
+
+    if do_print:
+        print(len(morphisms), "morphisms loaded.")
+
+    if B_seed_file != None:
+        B_seed = load_words_by_length(B_seed_file)
+        if do_print: 
+            print("Words loaded from B seed file.")
+    else:
+        B_seed = None
+        if do_print: 
+            print("No B seed file.")
+
+    count = 0
+
+    for m in morphisms:
+        if count % 10 == 0:
+            if do_print:
+                print(count, "morphisms processed...")
+
+        count += 1
+        try:
+            r,s, = get_bookends_from_morphism(m, max_bookend_size, min_A_size, B_seed)
+            if do_print:
+                print("Bookends found for", m)
+        except:
+            continue
+
+        if is_left_bookend_ideal(r) and is_right_bookend_ideal(s):
+            if do_print:
+                print("Found ideal bookends for", m)
+                print("r:",r)
+                print("s:",s)
+            return r,s

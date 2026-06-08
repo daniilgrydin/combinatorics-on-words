@@ -310,20 +310,3 @@ def get_min_critical_exponent(word):
         critical_exponents.append(get_critical_exponent(e))
     
     return min(critical_exponents)
-
-    # for start in range(len(word)):
-    #     repetition = 0
-    #     for cursor in range(start+1, len(word)):
-    #         if word[start+repetition] == word[cursor]:
-    #             repetition += 1
-    #             power_length = cursor-start+1
-    #             exponent = ExtendedReal(power_length, (power_length - repetition), False)
-    #             if isinstance(target_exponent, ExtendedReal):
-    #                 if target_exponent.is_less_than(exponent):
-    #                     return False
-    #             else:
-    #                 if target_exponent < exponent:
-    #                     return False
-    #         else:
-    #             repetition = 0
-    # return True

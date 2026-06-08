@@ -1,4 +1,4 @@
-from combinatorics.word import generate_greedy_words_unique, save_words, get_words, get_permutations, append_words
+from combinatorics.word import generate_greedy_words_unique, save_words, get_words, get_permutations, append_words, backtrack
 from combinatorics.exponent import is_suffix_exponent_free, ExtendedReal, is_exponent_free
 from combinatorics.extremal import is_nearly_extremal, is_right_extremal, is_left_extremal
 from combinatorics.alphabet import STANDARD_ALPHABET
@@ -62,7 +62,6 @@ def get_all_left_bookends(word, alphabet, exponent, MAX_ITERATIONS=-1):
             if is_left_extremal(c + word, alphabet, lambda w: is_exponent_free(w, exponent)):
                 result.append(c)
     return result
-
 
 def iterate_exponent_free_words(*, words=[""], alphabet="01", exponent=ExtendedReal(2,1,True)):
     r"""
