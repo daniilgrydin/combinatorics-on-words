@@ -37,6 +37,14 @@ class TernaryConstructionDecomposition():
         self.r_prime = get_common_suffix([self.r, images[0], images[1], images[2], images[3]])
         self.s_prime = get_common_prefix([self.s, images[0], images[1], images[2], images[3]])
 
+    def get_morphism_images(self):
+        return [
+            self.A + self.V1 + self.g['0'] + self.V2 + self.A_rev_comp,
+            self.A + self.V1 + self.g['1'] + self.V2 + self.A_rev_comp,
+            self.A + self.V1 + self.g['2'] + self.V2 + self.A_rev_comp,
+            self.A + self.V1 + self.g['3'] + self.V2 + self.A_rev_comp
+        ]
+
     def __str__(self):
         return f" \
         A: {self.A} \n \
@@ -99,6 +107,7 @@ def determine_A(morphism_images, A_candidates):
 
 def get_V1_V2(morphism_images, A):
     from combinatorics.word import get_common_suffix, get_common_prefix
+
     trimmed_images = []
     for img in morphism_images:
         trimmed_images.append(img[len(A):-len(A)])
@@ -207,9 +216,9 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
 
 # print()
 
-print(TernaryConstructionDecomposition(['010210120210201021012010201210120212010210121020102120210201210212', 
-'010210120210201021012010212012101201020120210120102120210201210212', 
-'010210120210201021201210201202120121021201021012102120210201210212', 
-'010210120210201021202101210201021012021201021012102120210201210212'], 
-    s = '010210120212010201202102010210120212010212'))
+# print(TernaryConstructionDecomposition(['010210120210201021012010201210120212010210121020102120210201210212', 
+# '010210120210201021012010212012101201020120210120102120210201210212', 
+# '010210120210201021201210201202120121021201021012102120210201210212', 
+# '010210120210201021202101210201021012021201021012102120210201210212'], 
+#     s = '010210120212010201202102010210120212010212'))
 

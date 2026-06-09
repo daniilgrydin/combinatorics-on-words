@@ -1,7 +1,25 @@
-from extendERT import get_all_right_bookends, get_all_left_bookends
-from combinatorics.exponent import ExtendedReal, is_exponent_free
+from combinatorics.word import generate_greedy_words_unique
+from combinatorics.exponent import ExtendedReal, is_exponent_free, is_suffix_exponent_free
 from itertools import combinations
 from combinatorics.extremal import is_left_extremal, is_right_extremal
+
+
+def get_all_left_bookends(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    if MAX_ITERATIONS == -1:
+        MAX_ITERATIONS = len(word)
+    candidates = [""]
+    result = []
+    for _ in range(MAX_ITERATIONS):
+        candidates = generate_greedy_words_unique(
+            alphabet,
+            1,
+            lambda w: is_suffix_exponent_free(w, exponent),
+            seed = candidates
+        )
+        for c in candidates:
+            if is_left_extremal(c + word, alphabet, lambda w: is_exponent_free(w, exponent)):
+                result.append(c)
+    return result
 
 def find_common_left_bookends(morphism_images, alphabet, beta, max_bookend_size):
     result_left = []
@@ -19,6 +37,23 @@ def find_common_left_bookends(morphism_images, alphabet, beta, max_bookend_size)
 
     return result_left
 
+def get_all_right_bookends(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    if MAX_ITERATIONS == -1:
+        MAX_ITERATIONS = len(word)
+    candidates = [""]
+    result = []
+    for _ in range(MAX_ITERATIONS):
+        candidates = generate_greedy_words_unique(
+            alphabet,
+            1,
+            lambda w: is_suffix_exponent_free(w, exponent),
+            seed = candidates
+        )
+        for c in candidates:
+            if is_right_extremal(word + c, alphabet, lambda w: is_exponent_free(w, exponent)):
+                result.append(c)
+    return result
+
 def find_common_right_bookends(morphism_images, alphabet, beta, max_bookend_size):
     result_right = []
 
@@ -35,7 +70,6 @@ def find_common_right_bookends(morphism_images, alphabet, beta, max_bookend_size
 
     return result_right
 
-
 def determine_common_right_bookends(morphism_images, alphabet, beta, candidate_bookends):
     result = []
     for c in candidate_bookends:
@@ -44,7 +78,6 @@ def determine_common_right_bookends(morphism_images, alphabet, beta, candidate_b
                 break
         result.append(c)
     return result
-
 
 def determine_common_left_bookends(morphism_images, alphabet, beta, candidate_bookends):
     result = []
@@ -107,3 +140,22 @@ def find_ideal_bookends(morphisms, alphabet, beta, max_bookend_size, do_print=Tr
                         print(r,"is right ideal")
 
     return left_result, right_result
+
+def get_first_right_bookend(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    if MAX_ITERATIONS == -1:
+        MAX_ITERATIONS = len(word)
+    candidates = [""]
+    for _ in range(MAX_ITERATIONS):
+        candidates = generate_greedy_words_unique(
+            alphabet,
+            1,
+            lambda w: is_suffix_exponent_free(w, exponent),
+            seed = candidates
+        )
+        for c in candidates:
+            if is_right_extremal(word + c, alphabet, lambda w: is_exponent_free(w, exponent)):
+                return c
+    raise RuntimeError("Could not find bookend")
+
+def get_first_left_bookend(word, alphabet, exponent, MAX_ITERATIONS=-1):
+    return get_first_right_bookend(word[::-1], alphabet, exponent, MAX_ITERATIONS)[::-1]
