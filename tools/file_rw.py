@@ -28,7 +28,7 @@ def load_images_of_morphisms(file_path):
     current = []
     for line in open(file_path, "r").readlines():
         if line[0] == '-' or len(line) == 0:
-            morphisms.append(current.copy())
+            morphisms.append(current.copy()) if len(current) > 0 else None
             current.clear()
         else:
             current.append(line.strip())

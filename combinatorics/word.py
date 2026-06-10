@@ -533,6 +533,9 @@ def index_all_occurrences(word, subword):
     return indices
 
 def get_common_prefix(words):
+    if len(words) == 0:
+        return ""
+
     common_prefix = ""
     for i in range(len(min(words))):
         current_letter = words[0][i] 
@@ -543,6 +546,9 @@ def get_common_prefix(words):
     return common_prefix
 
 def get_common_suffix(words):
+    if len(words) == 0:
+        return ""
+
     common_suffix = ""
     for i in range(1, len(min(words))+1):
         current_letter = words[0][-i] 
