@@ -1,14 +1,14 @@
+import tools.file_rw as rw
+
 # alpha_a is the alphabet of words in words_file_a
-# alpha b is the alphabet of the words in words_file_b
 # words_file_a should be the path to a file with alpha-free words over an n+1 size alphabet (eg. 7/5-free quaternary words)
 # nearly_extremal_words_file_b should be the path to a file with nearly extremal beta-free words over an n size alphabet (eg. nearly extremal 7/4+ ternary words)
 # beta is power of the desired words obtained from the morphism
-# min_q is the minimum uniform of the morphism desired
-# max_q is the maximum uniform of the morphism desired (should not be greater than the len of words in words_file_b)
 # filter is a function of a word that can narrow down the number of combinations to check (eg. words beginning with 0102 and ending with 0212)
 # output is a file to write the morphisms to
-def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, beta, min_q, max_q, filter, output, STOP=-1):
+def find_morphism(alpha_a, words_file_a, nearly_extremal_words_file_b, beta, q, filter, output, STOP=-1):
     from math import comb
+    from random import randrange
     from itertools import combinations
 
     words_a = []
@@ -22,23 +22,20 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
     nearly_extremal = []
     for line in open(nearly_extremal_words_file_b, 'r').readlines():
         candidate = line.strip()
-        if filter(candidate) and len(candidate) <= max_q:
+        if filter(candidate) and len(candidate) == q:
             nearly_extremal.append(line.strip())
     print(f"Loaded {len(nearly_extremal)} from {nearly_extremal_words_file_b}")
 
-    # Create nearly_extremal_lengths. Each index holds words of the index's length.
-    nearly_extremal_lengths = []
-    for i in range(0, max_q+1):
-        nearly_extremal_lengths.append([])
-    # Populate nearly_extremal_lengths
-    for n in nearly_extremal:
-        nearly_extremal_lengths[len(n)].append(n)
+    # # Create nearly_extremal_lengths. Each index holds words of the index's length.
+    # nearly_extremal_lengths = []
+    # for i in range(0, max_q+1):
+    #     nearly_extremal_lengths.append([])
+    # # Populate nearly_extremal_lengths
+    # for n in nearly_extremal:
+    #     nearly_extremal_lengths[len(n)].append(n)
 
     # Count the number of combinations
-    total_combinations_to_check = 0
-    for n in nearly_extremal_lengths:
-        total_combinations_to_check += comb(len(n), len(alpha_a))
-    print(f"Total combinations to check: {total_combinations_to_check}")
+    print(f"Total combinations to check: {comb(len(nearly_extremal), len(alpha_a))}")
 
     def check_valid_morphism(tuple):
         from combinatorics.morphism import dict_to_morphism, is_synchronizing
@@ -59,39 +56,34 @@ def find_morphism(alpha_a, alpha_b, words_file_a, nearly_extremal_words_file_b, 
 
         return True
     
-    morphisms = []
-    found = 0
+    print("checking q =", i)
 
-    for i in range(min_q, max_q+1):
+    morphisms = []
+    candidate_combinations = list(combinations(nearly_extremal, len(alpha_a)))
+    n = len(candidate_combinations)
+    found = 0
+    combo_count = 0
+    for i in range(n):
+        combo = candidate_combinations.pop(n - i)
+
+        if combo_count % 25 == 0:
+            print("Checked",combo_count,"morphisms.")
+        combo_count += 1
+
+        if not check_valid_morphism(combo): continue
+        print("Found morphism!\a")
+        result_morphism_dict = {}
+        for i in range(0, len(alpha_a)):
+            print(alpha_a[i], combo[i])
+            result_morphism_dict[alpha_a[i]] = combo[i]
+        morphisms.append(result_morphism_dict)
+        print()
+        found += 1
         if found == STOP:
             break
-        print("checking q =", i)
-
-        combo_count = 0
-        for combo in combinations(nearly_extremal_lengths[i], len(alpha_a)):
-            if combo_count % 25 == 0:
-                print("Checked",combo_count,"morphisms.")
-            combo_count += 1
-
-            if not check_valid_morphism(combo): continue
-            print("Found morphism!\a")
-            result_morphism_dict = {}
-            for i in range(0, len(alpha_a)):
-                print(alpha_a[i], combo[i])
-                result_morphism_dict[alpha_a[i]] = combo[i]
-            morphisms.append(result_morphism_dict)
-            print()
-            found += 1
-            if found == STOP:
-                break
 
     if len(morphisms) >= len(alpha_a):
-        out_file = open(output, 'w')
-        for m in morphisms:
-            for v in m.values():
-                out_file.write("\n" + str(v))
-            out_file.write("\n-")
-        out_file .close()
+        rw.save_images_of_morphisms([m.values() for m in morphisms], output)
     
     print("Done")
 
@@ -160,12 +152,13 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path,  prefix="", 
     print("Done")
 
 # Finds morphisms with ideal bookends and returns the constructions of those morphisms and bookends.
-def find_ideal_morphisms(morphism_images_file, image_count, 
+def find_ideal_constructions(morphism_images_file, image_count, 
                          max_bookend_size = -1, min_A_size = 0, 
                          B_seed_file = None, do_print = True, output_file = None):
     from tools.decomposition import get_bookends_from_morphism, TernaryConstructionDecomposition
     from bookends import is_left_bookend_ideal, is_right_bookend_ideal
-    from combinatorics.word import load_words_by_length
+    from tools.file_rw import load_words_by_length
+    from typing import List
 
     morphisms = []
     current = []
@@ -189,7 +182,7 @@ def find_ideal_morphisms(morphism_images_file, image_count,
             print("No B seed file.")
 
     count = 0
-    result_constructions = []
+    result_constructions : List[TernaryConstructionDecomposition] = []
 
     for m in morphisms:
         if count % 5 == 0:
@@ -198,7 +191,7 @@ def find_ideal_morphisms(morphism_images_file, image_count,
 
         count += 1
         try:
-            r,s, = get_bookends_from_morphism(m, max_bookend_size, min_A_size, B_seed)
+            r,s = get_bookends_from_morphism(m, max_bookend_size, min_A_size, B_seed)
             if do_print:
                 print("Bookends found for", m)
         except:
@@ -212,15 +205,7 @@ def find_ideal_morphisms(morphism_images_file, image_count,
             result_constructions.append(TernaryConstructionDecomposition(m, r = r, s = s))
 
     if output_file != None:
-        with open(output_file, 'w') as f:
-            for c in result_constructions:
-                f.write('-')
-                f.writelines(TernaryConstructionDecomposition(c).get_morphism_images())
-                f.write('r =', TernaryConstructionDecomposition(c).r)
-                f.write('s =', TernaryConstructionDecomposition(c).s)
-                f.write("r' =", TernaryConstructionDecomposition(c).r_prime)
-                f.write("s' =", TernaryConstructionDecomposition(c).s_prime)
-                f.write('-\n')
+        rw.save_constructions(result_constructions, output_file)
 
     return result_constructions
 
@@ -241,9 +226,48 @@ def best_common_prefixes(words_file, n, minimum_length = 0):
             prefixes[w[:i]] = prefixes.get(w[:i], 0) + 1
     
     best = []
-    for i in range(n):
+    for _ in range(n):
         prefix = max(prefixes, key=prefixes.get)
         best.append((prefix, prefixes[prefix]))
         prefixes.pop(prefix)
+    
+    return best
+
+def find_best_constructions(constructions_file, n=1, deep_check = True, do_print = True):
+    from combinatorics.exponent import get_min_critical_exponent_of_extensions_of_words, get_critical_exponent_of_words
+
+    constructions = rw.load_constructions(constructions_file)
+    
+    exponent_differences = {}
+    for c in constructions:
+        if do_print:
+            print(f"Checking construction with morphism images: \n{c.get_morphism_images()}.")
+
+        if deep_check:
+
+            image_critical = get_critical_exponent_of_words(c.get_morphism_images())
+            left_critical  = get_critical_exponent_of_words([c.r + w for w in c.get_morphism_images()])
+            right_critical = get_critical_exponent_of_words([w + c.s for w in c.get_morphism_images()])
+
+            if do_print:
+                print(f"f(c) has critical exponent {image_critical}.")
+                print(f"rf(c) has critical exponent {left_critical}.")
+                print(f"f(c)s has critical exponent {right_critical}.")
+        
+        alpha = c.get_alpha()
+        beta  = c.get_beta()
+
+        if do_print:
+            print(f"rf(c)s has critical exponent alpha = {alpha}.")
+            print(f"All extensions of rf(c)s have critical exponent beta = {beta}.")
+            print(f"This construction has a exponent difference of {beta - alpha}.")
+
+        exponent_differences[c] = beta - alpha
+    
+    best = []
+    for _ in range(n):
+        construction = max(exponent_differences, key=exponent_differences.get)
+        best.append(construction)
+        exponent_differences.pop(construction)
     
     return best

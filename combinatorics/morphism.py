@@ -32,18 +32,3 @@ def is_synchronizing(morphism, from_alphabet):
                     else:
                         return False
     return True
-
-def get_morphism_images_from_file(file, image_count):
-    morphisms = []
-    current = []
-    count = 0
-    to_read = open(file, "r").readlines()
-    for line in to_read:
-        if line[0] != '-':
-            current.append(line.strip())
-            count += 1
-            if count == image_count:
-                count = 0
-                morphisms.append(list(current))
-                current = []
-    return morphisms

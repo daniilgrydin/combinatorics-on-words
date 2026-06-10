@@ -552,15 +552,3 @@ def get_common_suffix(words):
         common_suffix += current_letter
     return common_suffix[::-1]
 
-def load_words_by_length(file_path):
-    result = [['']]
-    n = 0
-    for line in open(file_path, 'r').readlines():
-        index = len(line.strip())
-        if index > n:
-            for i in range(n+1, index+1):
-                result.append([])
-            n = index
-
-        result[index].append(line.strip())
-    return result

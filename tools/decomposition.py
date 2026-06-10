@@ -37,6 +37,9 @@ class TernaryConstructionDecomposition():
         self.r_prime = get_common_suffix([self.r, images[0], images[1], images[2], images[3]])
         self.s_prime = get_common_prefix([self.s, images[0], images[1], images[2], images[3]])
 
+        self.alpha = None
+        self.beta  = None
+
     def get_morphism_images(self):
         return [
             self.A + self.V1 + self.g['0'] + self.V2 + self.A_rev_comp,
@@ -44,6 +47,25 @@ class TernaryConstructionDecomposition():
             self.A + self.V1 + self.g['2'] + self.V2 + self.A_rev_comp,
             self.A + self.V1 + self.g['3'] + self.V2 + self.A_rev_comp
         ]
+    
+    def get_alpha(self):
+        from combinatorics.exponent import get_critical_exponent_of_words
+
+        if self.alpha == None:
+            self.alpha = get_critical_exponent_of_words(
+                [self.r + img + self.s for img in self.get_morphism_images()])
+            
+        return self.alpha
+
+    def get_beta(self):
+        from combinatorics.exponent import get_min_critical_exponent_of_extensions_of_words
+
+        if self.beta == None:
+            self.beta = get_min_critical_exponent_of_extensions_of_words(
+                [self.r + img + self.s for img in self.get_morphism_images()])
+            
+        return self.beta
+
 
     def __str__(self):
         return f" \
@@ -148,7 +170,7 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
     if len(potential_A) < min_A_size:
         raise RuntimeError("No bookends found.")
 
-    beta = Rational(0,1)
+    beta = Rational(1,1)
     for img in images:
         exponent = get_critical_exponent(img)
         if exponent > beta:

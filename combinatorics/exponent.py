@@ -119,6 +119,7 @@ class Rational:
     def __init__(self, numerator, denominator):
         self.numerator = numerator
         self.denominator = denominator
+        self.reduce()
     
     # def is_less_than(self, other):
     #     return self.numerator * other.denominator < other.numerator * self.denominator
@@ -237,6 +238,18 @@ class Rational:
 
     def __int__(self):
         return self.numerator // self.denominator
+    
+    def reduce(self):
+        def gcd(a,b):
+            q = a % b
+            if q != 0:
+                return gcd(b,q)
+            else: 
+                return b
+            
+        div = gcd(max(self.numerator, self.denominator), min(self.numerator, self.denominator))
+        self.numerator = self.numerator // div
+        self.denominator = self.denominator // div
 
 def get_critical_exponent(word):
     max_power = Rational(1,1)
@@ -264,6 +277,12 @@ def get_critical_exponent(word):
             # print()
             # print()
     return max_power
+
+def get_critical_exponent_of_words(words):
+    criticals = []
+    for w in words:
+        criticals.append(get_critical_exponent(w))
+    return max(criticals)
 
 def is_suffix_exponent_free(word, target_exponent: ExtendedReal):
     word = word[::-1]
@@ -302,7 +321,7 @@ def is_exponent_free(word, target_exponent: ExtendedReal):
             return False
     return True
 
-def get_min_critical_exponent(word):
+def get_min_critical_exponent_of_extensions(word):
     from .word import get_extensions
 
     critical_exponents = []
@@ -310,3 +329,9 @@ def get_min_critical_exponent(word):
         critical_exponents.append(get_critical_exponent(e))
     
     return min(critical_exponents)
+
+def get_min_critical_exponent_of_extensions_of_words(words):
+    criticals = []
+    for w in words:
+        criticals.append(get_min_critical_exponent_of_extensions(w))
+    return min(criticals)
