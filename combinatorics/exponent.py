@@ -7,7 +7,7 @@ class ExtendedReal:
         return float(self.rational)
     
     def __str__(self):
-        return f"{self.rational}{"+" if self.plus else ""}"
+        return str(self.rational) + ("+" if self.plus else "")
     
     def __eq__(self, other):
         if isinstance(other, ExtendedReal):
@@ -128,7 +128,7 @@ class Rational:
         return self.numerator / self.denominator
     
     def __str__(self):
-        return f"{self.numerator}/{self.denominator}"
+        return str(self.numerator) + "/" + str(self.denominator)
     
     def is_less_than(self, other):
         print("This method is depricated, you can now use inequalities with ExtendedReals and Rationals")
@@ -139,7 +139,7 @@ class Rational:
                 return self.numerator * other.rational.denominator < other.rational.numerator * self.denominator
         elif isinstance(other, Rational):
             return self.numerator * other.denominator < other.numerator * self.denominator
-        else: raise ValueError(f"{type(other)} type is not supported.")
+        else: raise ValueError(str(type(other)) + "type is not supported.")
     
     def __eq__(self, other):
         if isinstance(other, int):
@@ -187,7 +187,7 @@ class Rational:
             )
         return NotImplemented
     
-    def __truediv__(self, other):
+    def __truediv__(self, other): # self / other
         if isinstance(other, int):
             return Rational(
                 self.numerator,
@@ -197,6 +197,19 @@ class Rational:
             return Rational(
                 self.numerator * other.denominator,
                 self.denominator * other.numerator
+            )
+        return NotImplemented
+    
+    def __rtruediv__(self, other): # other / self
+        if isinstance(other, int):
+            return Rational(
+                self.denominator * other,
+                self.numerator
+            )
+        if isinstance(other, Rational):
+            return Rational(
+                other.numerator * self.denominator,
+                other.denominator * self.numerator
             )
         return NotImplemented
     
@@ -241,6 +254,8 @@ class Rational:
     
     def reduce(self):
         def gcd(a,b):
+            if b == 0:
+                return a
             q = a % b
             if q != 0:
                 return gcd(b,q)
@@ -277,6 +292,24 @@ def get_critical_exponent(word):
             # print()
             # print()
     return max_power
+
+def get_critical_factors(word):
+    result = set()
+    target = get_critical_exponent(word)
+
+    for start in range(len(word)):
+        for multiple in range(1, len(word[start:]) // target.numerator + 1):
+            end = start + multiple * target.numerator
+            current_factor = word[start:end]
+            period = multiple * target.denominator
+            repeat = 0
+            while repeat+period < len(current_factor) and \
+            current_factor[repeat] == current_factor[repeat+period]:
+                repeat += 1
+            if repeat+period == len(current_factor):
+                result.add(current_factor)
+
+    return result
 
 def get_critical_exponent_of_words(words):
     criticals = []
@@ -335,3 +368,29 @@ def get_min_critical_exponent_of_extensions_of_words(words):
     for w in words:
         criticals.append(get_min_critical_exponent_of_extensions(w))
     return min(criticals)
+
+def get_words_with_critical_exponent(target_exponent, max_multiple, min_multiple = 1, words = [], words_file = "", output_file = "", do_print = False):
+    import tools.file_rw as rw
+
+    result = []
+    beta = ExtendedReal(target_exponent.numerator, target_exponent.denominator, True)
+
+    if len(words_file) > 0:
+        words = rw.load_words_by_length(words_file)
+
+    for m in range(min_multiple, max_multiple + 1):
+        initial_part_length = m * target_exponent.denominator
+        if do_print: print("Looking at words of length", m * target_exponent.numerator)
+        for w in words[initial_part_length]:
+            current = w
+            to_repeat = (target_exponent - 1) * initial_part_length
+            while to_repeat >= initial_part_length:
+                current += w
+                to_repeat -= initial_part_length
+            if to_repeat != 0:
+                current += w[:int(to_repeat)]
+            if is_exponent_free(current, beta):
+                result.append(current)
+        rw.save_words(result, output_file)
+    
+    return result

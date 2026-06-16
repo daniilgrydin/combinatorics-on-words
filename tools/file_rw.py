@@ -1,26 +1,56 @@
 from tools.decomposition import TernaryConstructionDecomposition
 from typing import List
 
-def load_words(file_path):
+NONE_FLAG = "none_flag_"
+NONE_FLAG_LENGTH = len(NONE_FLAG)
+
+def load_words(file_path, get_none_sizes = False):
     result = []
+    none_sizes = []
     for line in open(file_path, 'r').readlines():
+        if line[:NONE_FLAG_LENGTH] == NONE_FLAG:
+            none_sizes.append(int(line[NONE_FLAG_LENGTH:].strip()))
+            continue
+        if len(line) == 0:
+            continue
+
         result.append(line.strip())
+    if get_none_sizes:
+        return result, none_sizes
     return result
 
 def save_words(words, file_path):
     with open(file_path, 'w') as f:
         f.write('\n'.join(words))
 
-def load_words_by_length(file_path):
+def append_words(words, file_path):
+    with open(file_path, 'a') as f:
+        f.write('\n'.join(words))
+
+def append_none_flag(file_path, number):
+    with open(file_path, 'a') as f:
+        f.write("\n")
+        f.write("\n" + NONE_FLAG + str(number))
+
+def load_words_by_length(file_path, get_none_sizes = False):
     result = [['']]
+    none_sizes = []
     n = 0
     for line in open(file_path, 'r').readlines():
-        index = len(line.strip())
-        if index > n:
-            for _ in range(n+1, index+1):
-                result.append([])
-            n = index
-        result[index].append(line.strip())
+        if line[:NONE_FLAG_LENGTH] == NONE_FLAG:
+            index = int(line[NONE_FLAG_LENGTH:].strip())
+            none_sizes.append(index)
+        else:
+            index = len(line.strip())
+
+            if index > n:
+                for _ in range(n+1, index+1):
+                    result.append([])
+                n = index
+
+            result[index].append(line.strip())
+    if get_none_sizes:
+        return result, none_sizes
     return result
 
 def load_images_of_morphisms(file_path):
@@ -36,6 +66,13 @@ def load_images_of_morphisms(file_path):
 
 def save_images_of_morphisms(morphisms, file_path):
     with open(file_path, 'w') as f:
+        for m in morphisms:
+            for img in m:
+                f.write(img + '\n')
+            f.write('-\n')
+
+def append_images_of_morphisms(morphisms, file_path):
+    with open(file_path, 'a') as f:
         for m in morphisms:
             for img in m:
                 f.write(img + '\n')
@@ -63,6 +100,21 @@ def load_constructions(file_path) -> List[TernaryConstructionDecomposition]:
 
 def save_constructions(constructions : List[TernaryConstructionDecomposition], file_path):
     with open(file_path, 'w') as f:
+        for c in constructions:
+            for img in c.get_morphism_images():
+                f.write(img + '\n')
+            f.write('r:' + c.r + '\n')
+            f.write('s:' + c.s + '\n')
+            f.write("r':" + c.r_prime + '\n')
+            f.write("s':" + c.s_prime + '\n')
+            if c.alpha != None:
+                f.write("alpha:" + c.get_alpha().__str__() + '\n')
+            if c.beta != None:
+                f.write("beta:" + c.get_beta().__str__() + '\n')
+            f.write('-\n')
+
+def append_constrctions(constructions : List[TernaryConstructionDecomposition], file_path):
+    with open(file_path, 'a') as f:
         for c in constructions:
             for img in c.get_morphism_images():
                 f.write(img + '\n')

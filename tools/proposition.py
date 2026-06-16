@@ -27,11 +27,13 @@ def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, be
     check_ts_occurrences(morphism, from_alphabet, s, ts, r)
     check_tr_ts_occurrences_fy(morphism, from_alphabet, alpha, tr, ts)
 
-    max_size_z = max(len(r),len(s))
-    print("max size of z:", max_size_z)
+    tr_max_z = get_max_z_size_for_tr(r, beta)
+    print("max size of z for tr:", tr_max_z)
+    z_check(morphism, from_alphabet, r, s, beta, tr_max_z)
 
-    z_check(morphism, from_alphabet, r, s, beta, max_size_z)
-
+    ts_max_z = get_max_z_size_for_ts(s, beta)
+    print("max size of z for ts:", ts_max_z)
+    z_check(morphism, from_alphabet, r, s, beta, ts_max_z)
 
     #check_tr_occurrences(morphism, from_alphabet, tr, alpha)
     #check_for_all_preimages(morphism, 3, from_alphabet, alpha, beta)
@@ -196,6 +198,18 @@ def check_tr_ts_occurrences_fy(f, from_alphabet, alpha, tr, ts, print_results = 
             return False
     if print_results: print(f"tr and ts occur exactly as they should in {alpha}-free words over {from_alphabet} of length 2.")
     return True
+
+def get_max_z_size_for_tr(r, beta):
+    n = len(r)
+    num = beta.rational.numerator
+    den = beta.rational.denominator
+    return 2*n + (2 * den * n - num * n) / (num - den)
+
+def get_max_z_size_for_ts(s, beta):
+    n = len(s)
+    num = beta.rational.numerator
+    den = beta.rational.denominator
+    return 2*n + (2 * den * n - num * n) / (num - den)
 
 def z_check(f, from_alphabet, r, s, beta, max_size_z, print_results = True):
     for i in range(1,max_size_z+1):

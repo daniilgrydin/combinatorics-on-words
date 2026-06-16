@@ -6,8 +6,10 @@ import tools.file_rw as rw
 # will begin at 1.
 def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_alphabet, beta, 
                     nearly_extremal_file, morphism_out_folder, morphism_seed_files = [],
-                    seed_prefix = '', seed_suffix = '' ,
-                    do_print = True, do_deep_print = False):
+                    seed_prefix = '', seed_suffix = '' , b_seed_file = "", morphisms_to_sample = 8,
+                    morphisms_to_check = 1000, prefixes_suffixes_to_sample = 5,
+                    prefix_suffix_coverage = 0.3, do_print = True, do_deep_print = False):
+    from combinatorics.word import get_common_prefix, get_common_suffix
     
     # Initial loading
     morphisms = {0:[['']]}
@@ -16,47 +18,89 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
         current = rw.load_images_of_morphisms(file) # [ [images], [images] ]
         morphisms[len(current[0][0])] = current.copy()
         current.clear()
-    existing_q = max(morphisms.keys())
 
     nearly_extremal = []
     try:
-        nearly_extremal = rw.load_words(nearly_extremal_file)
+        nearly_extremal, none_sizes = rw.load_words(nearly_extremal_file, get_none_sizes=True)
         if do_print: print(f"{len(nearly_extremal)} words loaded from {nearly_extremal_file}")
     except FileNotFoundError:
         nearly_extremal = [""]
 
-    def get_prescribed_prefix_suffix(nearly_extremal, last_morphism):
-        from combinatorics.word import get_common_prefix, get_common_suffix
+    existing_q = max([max(morphisms.keys()), max(none_sizes) if len(none_sizes) > 0 else 0, 
+                      len(max(nearly_extremal, key=len)) if len(nearly_extremal) > 0 else 0])
+
+
+    def get_prescribed_prefixes_suffixes(nearly_extremal, previous_morphisms):
+        from combinatorics.word import index_prefix_occurrences, index_suffix_occurrences, keys_from_max_values
 
         morphism_words = []
-        for m in last_morphism:
+        for m in previous_morphisms:
             for img in m:
                 morphism_words.append(img)
 
         common_prefix = get_common_prefix(morphism_words)
         common_suffix = get_common_suffix(morphism_words)
 
-        prefixes = best_common_prefixes(len(common_prefix) + 1, words=nearly_extremal)
-        suffixes = best_common_suffixes(len(common_suffix) + 1, words=nearly_extremal)
+        prefixes_indexed = index_prefix_occurrences(len(common_prefix) + 1, words=morphism_words)
+        prefixes = keys_from_max_values(prefixes_indexed, prefixes_suffixes_to_sample)
+        count = 2
 
-        return common_prefix if len(prefixes) == 0 else prefixes[0][0], common_suffix if len(suffixes) == 0 else suffixes[0][0]
+        while len(prefixes) >= prefixes_suffixes_to_sample and \
+        sum([prefixes_indexed[p] for p in prefixes]) > prefix_suffix_coverage * len(morphism_words):
+            prefixes_indexed = index_prefix_occurrences(len(common_prefix) + count, words=morphism_words)
+            prefixes = keys_from_max_values(prefixes_indexed, prefixes_suffixes_to_sample)
+            count += 1
+        prefixes_indexed = index_prefix_occurrences(len(common_prefix) + count - 2, words=morphism_words)
+        prefixes = keys_from_max_values(prefixes_indexed, prefixes_suffixes_to_sample)
+
+        suffixes_indexed = index_suffix_occurrences(len(common_suffix) + 1, words=morphism_words)
+        suffixes = keys_from_max_values(suffixes_indexed, prefixes_suffixes_to_sample)
+        count = 2
+
+        while len(suffixes) >= prefixes_suffixes_to_sample and \
+        sum([suffixes_indexed[s] for s in suffixes]) > prefix_suffix_coverage * len(morphism_words):
+            suffixes_indexed = index_suffix_occurrences(len(common_suffix) + count, words=morphism_words)
+            suffixes = keys_from_max_values(suffixes_indexed, prefixes_suffixes_to_sample)
+            count += 1
+        suffixes_indexed = index_suffix_occurrences(len(common_suffix) + count - 2, words=morphism_words)
+        suffixes = keys_from_max_values(suffixes_indexed, prefixes_suffixes_to_sample)
+        
+        return common_prefix if len(prefixes) == 0 else prefixes, common_suffix if len(suffixes) == 0 else suffixes
 
     # Building
     for q in range(existing_q + 1, q_to_build + 1):
         if do_print: print(f"Currently building q = {q}...")
-        last_morphism_key = max(morphisms.keys())
-        prefix, suffix = get_prescribed_prefix_suffix(nearly_extremal, morphisms[last_morphism_key])
-        if len(prefix) < len(seed_prefix):
-            prefix = seed_prefix
-        if len(suffix) < len(seed_suffix):
-            suffix = seed_suffix
-        if do_print: print(f"Prescribed prefix/suffix: {prefix}, {suffix}")
 
-        nearly_extremal = generate_nearly_extremal(image_alphabet, q, beta, nearly_extremal_file,
-                                prefix=prefix, suffix=suffix, do_print=do_deep_print)
+        last_morphisms = []
+        for m in morphisms.values():
+            last_morphisms.extend(m)
+        prefixes, suffixes = get_prescribed_prefixes_suffixes(nearly_extremal, last_morphisms)
+        
+        if len(prefixes) == 0 or len(max(prefixes, key=len)) < len(seed_prefix):
+            prefixes = [seed_prefix]
+        if len(suffixes) == 0 or len(max(suffixes, key=len)) < len(seed_suffix):
+            suffixes = [seed_suffix]
+
+        if do_print: 
+            print(f"Prescribed prefixes: {prefixes}")
+            print(f"Prescribed suffixes: {suffixes}")
+
+        nearly_extremal = generate_nearly_extremal(image_alphabet, q, beta, file_path = nearly_extremal_file,
+                                prefix=get_common_prefix(prefixes), suffix=get_common_suffix(suffixes), 
+                                do_print=do_deep_print, b_seed_file=b_seed_file)
+        
+        def morphism_filter(w):
+            for p in prefixes:
+                if w[:len(p)] != p:
+                    return False
+            for s in suffixes:
+                if w[-len(s)] != s:
+                    return False
+            return True
+
         morphisms_dicts = find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_file, beta, q, 
-                      output=morphism_out_folder + f"/{q}-uniform_morphism.txt", STOP=10, do_print=do_deep_print,
-                      filter=lambda w: w[:len(prefix)] == prefix and w[-len(suffix)] == suffix)
+                      output=morphism_out_folder + f"/{q}-uniform_morphism.txt", STOP=morphisms_to_sample, do_print=do_deep_print,
+                      filter=morphism_filter)
         
         q_morphisms = []
         for m in morphisms_dicts:
@@ -74,16 +118,12 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
 # filter is a function of a word that can narrow down the number of combinations to check (eg. words beginning with 0102 and ending with 0212)
 # output is a file to write the morphisms to
 def find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_words_file, beta, q,
-                    output, filter = lambda w: True, STOP=-1, do_print = True):
+                    output, filter = lambda w: True, to_check=1000, STOP=-1, do_print = True):
     from math import comb
     from random import randrange
     from itertools import combinations
 
-    words_a = []
-    with open(preimage_words_file, "r") as f:
-        for w in f.readlines():
-            if len(w) > 1:
-                words_a.append(w.strip())
+    preimages = rw.load_words(preimage_words_file)
 
     if do_print: print(f"Loaded {preimage_words_file}")
 
@@ -120,7 +160,7 @@ def find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_words
         if not is_synchronizing(morphism, preimage_alphabet): 
             return False
 
-        for w in words_a:
+        for w in preimages:
             if not is_exponent_free(morphism(w), beta): 
                 return False
 
@@ -137,6 +177,12 @@ def find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_words
         if combo_count % 25 == 0 and do_print:
             print("Checked",combo_count,"morphisms.")
         combo_count += 1
+
+        if combo_count >= to_check:
+            if len(morphisms) > 0:
+                rw.save_images_of_morphisms([m.values() for m in morphisms], output)
+                return morphisms
+            return []
 
         if not check_valid_morphism(combo): continue
         if do_print: print("Found morphism!\a")
@@ -158,15 +204,16 @@ def find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_words
 # alphabet is what nearly extremal words will be made over
 # max_length is the size [1,max_length] of nearly_extremal words to make
 # file_path is the file that the nearly extremal words will be written to 
-def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",  prefix="", suffix="", do_print = True):
+def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",  
+                             prefix="", suffix="", b_seed_file = "", do_print = True):
     from combinatorics.word import generate_greedy_words
-    from combinatorics.exponent import is_suffix_exponent_free, is_exponent_free
+    from combinatorics.exponent import is_suffix_exponent_free, is_exponent_free, Rational, get_critical_exponent
     from combinatorics.extremal import is_nearly_extremal
 
     nearly_extremal = []
 
     try:
-        nearly_extremal = rw.load_words(file_path)
+        nearly_extremal, none_sizes = rw.load_words(file_path, get_none_sizes=True)
         if do_print: print(f"{len(nearly_extremal)} words loaded from file.")
         if len(nearly_extremal) > 0:
             existing_length = len(nearly_extremal[-1])
@@ -176,25 +223,34 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",  prefix
         existing_length = 1
 
 
-    existing_length = max(existing_length - len(prefix) - len(suffix), 1)
+    existing_length = max(max(existing_length, 
+                            max(none_sizes) if len(none_sizes) > 0 else 0) - len(prefix) - len(suffix),
+                            1)
+
     if do_print: print(f"Generating nearly extremal {beta}-free words over {alphabet}")
 
-    words = generate_greedy_words(
-        alphabet,
-        existing_length,
-        lambda word: is_suffix_exponent_free(word, beta)
-    )
-
+    if len(b_seed_file) > 0:
+        words_by_length = rw.load_words_by_length(b_seed_file)
+        words = words_by_length[existing_length]
+    else:
+        words = generate_greedy_words(
+            alphabet,
+            existing_length,
+            lambda word: is_suffix_exponent_free(word, beta)
+        )
 
     for length in range(existing_length+1, max_length - len(prefix) - len(suffix) + 1):
         if do_print: print(f"Currently generating length: {length + len(prefix) + len(suffix)}...")
 
-        words = generate_greedy_words(
-            alphabet,
-            1,
-            lambda word: is_suffix_exponent_free(word, beta),
-            seed = words
-        )
+        if len(b_seed_file) > 0:
+            words = words_by_length[length]
+        else:
+            words = generate_greedy_words(
+                alphabet,
+                1,
+                lambda word: is_suffix_exponent_free(word, beta),
+                seed = words
+            )
 
         count = 0
 
@@ -212,6 +268,9 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",  prefix
         
         rw.save_words(nearly_extremal, file_path)
     
+        if count == 0:
+            rw.append_none_flag(file_path, length + len(prefix) + len(suffix))
+
     return nearly_extremal
             
 
@@ -221,7 +280,7 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",  prefix
 # min_A_size is the smallest A will be.
 # B_seed_file is a file of all beta-free words. This is not necessary but greatly speeds up time searching for a suitable B. 
 def find_ideal_constructions(morphism_images_file, image_count, 
-                         max_bookend_size = -1, min_A_size = 0, 
+                         max_bookend_size = -1, min_A_size = 0, get_exponents = False,
                          B_seed_file = None, do_print = True, output_file = None):
     from tools.decomposition import get_bookends_from_morphism, TernaryConstructionDecomposition
     from bookends import is_left_bookend_ideal, is_right_bookend_ideal
@@ -238,6 +297,7 @@ def find_ideal_constructions(morphism_images_file, image_count,
             current.clear()
 
     if do_print:
+        print("Finding ideal constructions.")
         print(len(morphisms), "morphisms loaded.")
 
     if B_seed_file != None:
@@ -253,9 +313,8 @@ def find_ideal_constructions(morphism_images_file, image_count,
     result_constructions : List[TernaryConstructionDecomposition] = []
 
     for m in morphisms:
-        if count % 5 == 0:
-            if do_print:
-                print(count, "morphisms processed...")
+        if do_print:
+            print(count, "morphisms processed...")
 
         count += 1
         try:
@@ -270,83 +329,21 @@ def find_ideal_constructions(morphism_images_file, image_count,
                 print("Found ideal bookends for", m)
                 print("r:",r)
                 print("s:",s)
-            result_constructions.append(TernaryConstructionDecomposition(m, r = r, s = s))
+            current_construction = TernaryConstructionDecomposition(m, r = r, s = s)
+            if get_exponents:
+                current_construction.get_alpha()
+                current_construction.get_beta()
+            result_constructions.append(current_construction)
 
-    if output_file != None:
+
+    if output_file != None and len(result_constructions) > 0:
         rw.save_constructions(result_constructions, output_file)
 
     return result_constructions
 
-# Returns the n prefixes that occur most in the file of words with a minimum length.
-def best_common_prefixes(length, words = [], words_file = "", n = 1):
-    from combinatorics.word import get_common_prefix
-
-    words_to_search = []
-
-    if len(words) > 0:
-        words_to_search = words
-    else: 
-        try:
-            words_to_search = rw.load_words(words_file)
-        except FileNotFoundError:
-            return [("", 0)]
-
-    prefixes = {}
-
-    # start = max(minimum_length, len(get_common_prefix(words_to_search)))
-    # stop = len(max(words_to_search, key=len))
-    # for i in range(start+1, stop+2):
-    #     for w in words_to_search:
-    #         prefixes[w[:i]] = prefixes.get(w[:i], 0) + 1
-
-    for w in words_to_search:
-        if len(w) >= length:
-            prefixes[w[:length]] = prefixes.get(w[:length], 0) + 1
-    
-    best = []
-    for _ in range(min(n, len(prefixes))):
-        prefix = max(prefixes, key=prefixes.get)
-        best.append((prefix, prefixes[prefix]))
-        prefixes.pop(prefix)
-    
-    return best
-
-def best_common_suffixes(length, words = [], words_file = "", n = 1):
-    from combinatorics.word import get_common_suffix
-
-    words_to_search = []
-
-    if len(words) > 0:
-        words_to_search = words
-    else: 
-        try:
-            words_to_search = rw.load_words(words_file)
-        except FileNotFoundError:
-            return [("", 0)]
-    
-    suffixes = {}
-
-    # start = max(minimum_length, len(get_common_suffix(words_to_search)))
-    # stop = len(max(words_to_search, key=len))
-    # for i in range(start, stop+1):
-    #     for w in words_to_search:
-    #         suffixes[w[-i:]] = suffixes.get(w[-i:], 0) + 1
-
-    for w in words_to_search:
-        if len(w) >= length:
-            suffixes[w[-length:]] = suffixes.get(w[-length:], 0) + 1
-
-    best = []
-    for _ in range(min(n, len(suffixes))):
-        suffix = max(suffixes, key=suffixes.get)
-        best.append((suffix, suffixes[suffix]))
-        suffixes.pop(suffix)
-    
-    return best
-
 # Takes ideal constructions and takes the n best ones.
 # Deep check prints more details about each construction. 
-def find_best_constructions(constructions_file, n=1, deep_check = True, do_print = True):
+def find_best_constructions(constructions_file, n=1, output_file="", deep_check = True, do_print = True):
     from combinatorics.exponent import get_min_critical_exponent_of_extensions_of_words, get_critical_exponent_of_words
 
     constructions = rw.load_constructions(constructions_file)
@@ -383,4 +380,47 @@ def find_best_constructions(constructions_file, n=1, deep_check = True, do_print
         best.append(construction)
         exponent_differences.pop(construction)
     
+    if len(output_file) > 0:
+        try:
+            rw.save_constructions(best, output_file)
+        except FileNotFoundError:
+            print(f"{output_file} not found, so constructions were not written.")
+    
     return best
+
+def generate_critical_nearly_extremal(alphabet, length, beta, critical_exponent, critical_seed_file,
+                                    b_seed_file, output_path = "", prefixes=[], suffixes=[], do_print = True):
+    from combinatorics.extremal import is_nearly_extremal
+    from combinatorics.exponent import is_exponent_free
+
+    if do_print: print("Generating nearly extremal", beta, "-free words of length", length, 
+                       "with critical exponent", critical_exponent)
+        
+    critical_seeds = rw.load_words(critical_seed_file)
+
+    if length - len(max(critical_seeds, key=len)) - len(max(prefixes, key=len)) - len(max(suffixes, key=len)) < 0:
+        if do_print: print("Length not long enough.")
+        return []
+
+    b_seeds_by_length = rw.load_words_by_length(b_seed_file)
+
+    result = []
+    count = 0
+    # They call this the most for loops ever seen in a program
+    for seed in critical_seeds: 
+        for prefix in prefixes:
+            for suffix in suffixes:
+                for inside in b_seeds_by_length[length - len(seed) - len(prefix) - len(suffix)]:
+                    for insert in range(0, len(inside) + 1):
+                        candidate = prefix + inside[:insert] + seed + inside[insert:] + suffix
+                        if is_nearly_extremal(candidate, alphabet, lambda w: is_exponent_free(w, beta)):
+                            result.append(candidate)
+                            print(candidate)
+                            count += 1
+                            if count % 10 == 0:
+                                if do_print: print(count, "found...")
+                                if len(output_path) > 0:
+                                    rw.save_words(result, output_path)
+    if len(output_path) > 0:
+        rw.save_words(result, output_path)
+    return result

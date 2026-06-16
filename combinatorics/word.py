@@ -1,3 +1,5 @@
+import tools.file_rw as rw
+
 def sum_of_digits(word):
     sum = 0
     for c in word:
@@ -63,7 +65,7 @@ def encode_short(word, alphabet):
             break
         leading_zeros += 1
         
-    return f"{alphabet}{f":{leading_zeros}" if leading_zeros else ""}:{convert_base(word, alphabet, ENCODING_ALPHABET)}"
+    return str(alphabet) + ":" + (str(leading_zeros) if leading_zeros else "") + str(convert_base(word, alphabet, ENCODING_ALPHABET))
 
 def decode_short(code):
     from .alphabet import ENCODING_ALPHABET
@@ -92,17 +94,17 @@ def report_word(word):
     if len(short_word) < len(word):
         short_word += "..."
     sqr = get_squares(word)
-    print(f"\nIs square free? {is_square_free(word)}")
-    print(f"\tSquares in {short_word} (total={len(sqr)}):")
+    print("\nIs square free?", is_square_free(word))
+    print("\tSquares in", short_word, "(total=", len(sqr) + "):")
     print(", ".join(sqr))
     ovr = get_overlaps(word)
-    print(f"\nIs overlap free? {is_overlap_free(word)}")
-    print(f"\tOverlaps in {short_word} (total={len(ovr)}):")
+    print("\nIs overlap free?", is_overlap_free(word))
+    print("\tOverlaps in", short_word, "(total=", len(ovr) + "):")
     print(", ".join(ovr))
     if is_extremal_square_free(word, set(word)):
-        print(f"\n\t\t{short_word} is extremal.")
+        print("\n\t\t", short_word, "is extremal.")
     if is_nearly_extremal_square_free(word, set(word)):
-        print(f"\n\t\t{short_word} is nearly extremal.")
+        print("\n\t\t", short_word, "is nearly extremal.")
     print("-*-" * 12)
 
 
@@ -146,7 +148,7 @@ def color_word(word, alphabet):
         index = alphabet.index(c)
         fg = foreground[index // len(foreground)]
         bg = background[index % len(background)]
-        output += f"\033[0;{fg};{bg}m {c} \033[0m"
+        output += "\033[0;" + str(fg) + ";" + str(bg) + "m" + str(c) + "\033[0m"
 
     return output
 
@@ -380,15 +382,15 @@ def explain_word(
     if nearly_extremal is not None:
         data.append("nearly extremal")
     if exponent_free is not None:
-        data.append(f"({str(exponent_free)})-free")
+        data.append((str(exponent_free)) + "-free")
     data.append("words")
     if length is not None:
-        data.append(f"of length {str(length)}")
+        data.append("of length" + str(length))
     if len(kwargs) > 0:
         other = [
-            (f"{key}: {value}" if not isinstance(value, bool) else f"{key}")
+            (str(key) + ": " + str(value) if not isinstance(value, bool) else str(key))
             for key, value in kwargs.items()]
-        data.append(f"with additional parameters: {", ".join(other)}")
+        data.append("with additional parameters: " + ", ".join(other))
     return " ".join(data)
 
 def construct_file_name(
@@ -401,7 +403,7 @@ def construct_file_name(
     data = []
     if length is not None:
         if isinstance(length, tuple):
-            data.append(f"({length[0]}-{length[1]})")
+            data.append(str(length[0]) + "-" + str(length[1]))
         else:
             data.append(length)
             
@@ -410,7 +412,7 @@ def construct_file_name(
     if nearly_extremal is not None:
         data.append("nex")
     if exponent_free is not None:
-        data.append(f"({exponent_free.rational.numerator}{"+" if exponent_free.plus else "-"}{exponent_free.rational.denominator})")
+        data.append(str(exponent_free.rational.numerator) + ("+" if exponent_free.plus else "-") + str(exponent_free.rational.denominator))
     data.extend(sorted(args))
     return "-".join(data) + ".txt"
 
@@ -473,7 +475,7 @@ def save_words(
         f.write("\n".join(words))
     
     with open("data/index.md", "a") as f:
-        f.write(f"| {datetime.now()} | {len(words)} | `{file_name}` | {description} |\n")
+        f.write("| " + str(datetime.now()) + " | " + str(len(words)) + " | `" + str(file_name) + "` | " + str(description) + " |\n")
     
     return file_name
 
@@ -558,3 +560,68 @@ def get_common_suffix(words):
         common_suffix += current_letter
     return common_suffix[::-1]
 
+
+def index_prefix_occurrences(length, words = [], words_file = ""):
+    words_to_search = []
+
+    if len(words) > 0:
+        words_to_search = words
+    else: 
+        try:
+            words_to_search = rw.load_words(words_file)
+        except FileNotFoundError:
+            return [("", 0)]
+
+    prefixes = {}
+
+    for w in words_to_search:
+        if len(w) >= length:
+            prefixes[w[:length]] = prefixes.get(w[:length], 0) + 1
+    
+    return prefixes
+
+def index_suffix_occurrences(length, words = [], words_file = ""):
+    words_to_search = []
+
+    if len(words) > 0:
+        words_to_search = words
+    else: 
+        try:
+            words_to_search = rw.load_words(words_file)
+        except FileNotFoundError:
+            return [("", 0)]
+    
+    suffixes = {}
+
+    for w in words_to_search:
+        if len(w) >= length:
+            suffixes[w[-length:]] = suffixes.get(w[-length:], 0) + 1
+    
+    return suffixes
+
+def index_factor_occurrences(length, words = [], words_file = ""):
+    words_to_search = []
+
+    if len(words) > 0:
+        words_to_search = words
+    else: 
+        try:
+            words_to_search = rw.load_words(words_file)
+        except FileNotFoundError:
+            return [("", 0)]
+    
+    factors = {}
+
+    for w in words_to_search:
+        if len(w) >= length:
+            for i in range(0,len(w) - length + 1):
+                factors[w[i:length+i]] = factors.get(w[-length:], 0) + 1
+    
+    return factors
+
+def keys_from_max_values(dict, n = 1):
+    keys = []
+    for _ in range(n):
+        if len(dict) == 0: break
+        keys.append(max(dict, key=dict.get))
+    return keys
