@@ -5,11 +5,12 @@ import tools.file_rw as rw
 # morphism_seed_files is a list of uniform morphism image files that we already have. If this is not provided, building
 # will begin at 1.
 def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_alphabet, beta, 
-                    nearly_extremal_file, morphism_out_folder, morphism_seed_files = [],
+                    critical_nearly_extremal_file, morphism_out_folder, morphism_seed_files = [],
                     seed_prefix = '', seed_suffix = '' , b_seed_file = "", morphisms_to_sample = 8,
-                    morphisms_to_check = 1000, prefixes_suffixes_to_sample = 5,
+                    morphisms_to_check = 1000, prefixes_suffixes_to_sample = 5, critical_seed_file = "",
                     prefix_suffix_coverage = 0.3, do_print = True, do_deep_print = False):
     from combinatorics.word import get_common_prefix, get_common_suffix
+    from combinatorics.exponent import Rational
     
     # Initial loading
     morphisms = {0:[['']]}
@@ -19,18 +20,18 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
         morphisms[len(current[0][0])] = current.copy()
         current.clear()
 
-    nearly_extremal = []
+    critical_nearly_extremal = []
     try:
-        nearly_extremal, none_sizes = rw.load_words(nearly_extremal_file, get_none_sizes=True)
-        if do_print: print(f"{len(nearly_extremal)} words loaded from {nearly_extremal_file}")
+        critical_nearly_extremal, none_sizes = rw.load_words(critical_nearly_extremal_file, get_none_sizes=True)
+        if do_print: print(f"{len(critical_nearly_extremal)} nearly extremal words loaded from {critical_nearly_extremal_file}")
     except FileNotFoundError:
-        nearly_extremal = [""]
+        critical_nearly_extremal = [""]
 
-    existing_q = max([max(morphisms.keys()), max(none_sizes) if len(none_sizes) > 0 else 0, 
-                      len(max(nearly_extremal, key=len)) if len(nearly_extremal) > 0 else 0])
+    existing_q = max([max(none_sizes) if len(none_sizes) > 0 else 0, 
+                      len(max(critical_nearly_extremal, key=len)) if len(critical_nearly_extremal) > 0 else 0])
 
 
-    def get_prescribed_prefixes_suffixes(nearly_extremal, previous_morphisms):
+    def get_prescribed_prefixes_suffixes(previous_morphisms):
         from combinatorics.word import index_prefix_occurrences, index_suffix_occurrences, keys_from_max_values
 
         morphism_words = []
@@ -74,7 +75,7 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
         last_morphisms = []
         for m in morphisms.values():
             last_morphisms.extend(m)
-        prefixes, suffixes = get_prescribed_prefixes_suffixes(nearly_extremal, last_morphisms)
+        prefixes, suffixes = get_prescribed_prefixes_suffixes(last_morphisms)
         
         if len(prefixes) == 0 or len(max(prefixes, key=len)) < len(seed_prefix):
             prefixes = [seed_prefix]
@@ -85,9 +86,12 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
             print(f"Prescribed prefixes: {prefixes}")
             print(f"Prescribed suffixes: {suffixes}")
 
-        nearly_extremal = generate_nearly_extremal(image_alphabet, q, beta, file_path = nearly_extremal_file,
-                                prefix=get_common_prefix(prefixes), suffix=get_common_suffix(suffixes), 
-                                do_print=do_deep_print, b_seed_file=b_seed_file)
+        critical_exponent = Rational(beta.rational.numerator, beta.rational.denominator)
+        critical_nearly_extremal = generate_critical_nearly_extremal(image_alphabet, q, beta, 
+                                critical_exponent, critical_seed_file=critical_seed_file,
+                                b_seed_file = b_seed_file, output_path=critical_nearly_extremal_file,
+                                prefixes=prefixes, suffixes=suffixes, 
+                                do_print=do_deep_print)
         
         def morphism_filter(w):
             for p in prefixes:
@@ -98,7 +102,7 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
                     return False
             return True
 
-        morphisms_dicts = find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_file, beta, q, 
+        morphisms_dicts = find_morphisms(preimage_alphabet, preimage_words_file, critical_nearly_extremal_file, beta, q, 
                       output=morphism_out_folder + f"/{q}-uniform_morphism.txt", STOP=morphisms_to_sample, do_print=do_deep_print,
                       filter=morphism_filter)
         
@@ -196,7 +200,7 @@ def find_morphisms(preimage_alphabet, preimage_words_file, nearly_extremal_words
         if found == STOP:
             break
 
-    if len(morphisms) >= len(preimage_alphabet):
+    if len(morphisms) > 0:
         rw.save_images_of_morphisms([m.values() for m in morphisms], output)
     
     return morphisms
@@ -279,7 +283,7 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",
 # max_bookend_size is the largest bookends to looked for.
 # min_A_size is the smallest A will be.
 # B_seed_file is a file of all beta-free words. This is not necessary but greatly speeds up time searching for a suitable B. 
-def find_ideal_constructions(morphism_images_file, image_count, 
+def find_ideal_constructions(morphism_images_file,
                          max_bookend_size = -1, min_A_size = 0, get_exponents = False,
                          B_seed_file = None, do_print = True, output_file = None):
     from tools.decomposition import get_bookends_from_morphism, TernaryConstructionDecomposition
@@ -287,14 +291,7 @@ def find_ideal_constructions(morphism_images_file, image_count,
     from tools.file_rw import load_words_by_length
     from typing import List
 
-    morphisms = []
-    current = []
-    for line in open(morphism_images_file, 'r').readlines():
-        if line[0] == '-': continue
-        current.append(line.strip())
-        if len(current) == image_count:
-            morphisms.append(current.copy())
-            current.clear()
+    morphisms = rw.load_images_of_morphisms(morphism_images_file)
 
     if do_print:
         print("Finding ideal constructions.")
@@ -314,15 +311,18 @@ def find_ideal_constructions(morphism_images_file, image_count,
 
     for m in morphisms:
         if do_print:
-            print(count, "morphisms processed...")
+            print(f"\n{count} morphisms processed...")
 
         count += 1
-        try:
-            r,s = get_bookends_from_morphism(m, max_bookend_size, min_A_size, B_seed)
-            if do_print:
-                print("Bookends found for", m)
-        except:
+        bookends_result = get_bookends_from_morphism(m, max_bookend_size, min_A_size, B_seed)
+        if bookends_result == None:
             continue
+
+        if do_print:
+            print("Bookends found for", m)
+
+        r = bookends_result[0]
+        s = bookends_result[1]
 
         if is_left_bookend_ideal(m, r) and is_right_bookend_ideal(m, s):
             if do_print:
@@ -388,6 +388,12 @@ def find_best_constructions(constructions_file, n=1, output_file="", deep_check 
     
     return best
 
+# Finds nearly extremal words using words with a specified critical exponent to build them.
+# Beta is the power that the words should be nearly extremal of
+# Critical exponent is the exponent of the critical words
+# Critical seed file contains words with the given critical exponent
+# b seed file are beta-free words for padding
+# Prefixes/suffixes are lists containing desired prefixes and suffixes
 def generate_critical_nearly_extremal(alphabet, length, beta, critical_exponent, critical_seed_file,
                                     b_seed_file, output_path = "", prefixes=[], suffixes=[], do_print = True):
     from combinatorics.extremal import is_nearly_extremal
@@ -398,18 +404,23 @@ def generate_critical_nearly_extremal(alphabet, length, beta, critical_exponent,
         
     critical_seeds = rw.load_words(critical_seed_file)
 
-    if length - len(max(critical_seeds, key=len)) - len(max(prefixes, key=len)) - len(max(suffixes, key=len)) < 0:
+    if length - len(min(critical_seeds, key=len)) - len(min(prefixes, key=len)) - len(min(suffixes, key=len)) < 0:
         if do_print: print("Length not long enough.")
         return []
 
     b_seeds_by_length = rw.load_words_by_length(b_seed_file)
 
-    result = []
+    try:
+        result = rw.load_words(output_path)
+    except:
+        result = []
+
     count = 0
     # They call this the most for loops ever seen in a program
     for seed in critical_seeds: 
         for prefix in prefixes:
             for suffix in suffixes:
+                if length - len(seed) - len(prefix) - len(suffix) <= 0: continue
                 for inside in b_seeds_by_length[length - len(seed) - len(prefix) - len(suffix)]:
                     for insert in range(0, len(inside) + 1):
                         candidate = prefix + inside[:insert] + seed + inside[insert:] + suffix
@@ -423,4 +434,6 @@ def generate_critical_nearly_extremal(alphabet, length, beta, critical_exponent,
                                     rw.save_words(result, output_path)
     if len(output_path) > 0:
         rw.save_words(result, output_path)
+        if len(result) == 0:
+            rw.append_none_flag(output_path, length)
     return result

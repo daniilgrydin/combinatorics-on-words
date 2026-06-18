@@ -380,6 +380,7 @@ def get_words_with_critical_exponent(target_exponent, max_multiple, min_multiple
 
     for m in range(min_multiple, max_multiple + 1):
         initial_part_length = m * target_exponent.denominator
+        print(words[initial_part_length])
         if do_print: print("Looking at words of length", m * target_exponent.numerator)
         for w in words[initial_part_length]:
             current = w

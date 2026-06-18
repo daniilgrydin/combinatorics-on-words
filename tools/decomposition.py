@@ -168,7 +168,8 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
     potential_A = get_common_prefix([largest_A, ternary_complement(largest_A_rev_comp)[::-1]])
 
     if len(potential_A) < min_A_size:
-        raise RuntimeError("No bookends found.")
+        print(f"Potential A {potential_A} is smaller than min A size {min_A_size}")
+        return None
 
     beta = Rational(1,1)
     for img in images:
@@ -220,7 +221,8 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
                 if right_extremal_flag and left_extremal_flag:
                     return r_candidate, s_candidate
 
-    raise RuntimeError("No bookends found.")
+    print("No bookends found.")
+    return None
 
 
 # primary = TernaryConstructionDecomposition([

@@ -25,6 +25,7 @@ def save_words(words, file_path):
 
 def append_words(words, file_path):
     with open(file_path, 'a') as f:
+        f.write('\n')
         f.write('\n'.join(words))
 
 def append_none_flag(file_path, number):

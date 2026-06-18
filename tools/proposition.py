@@ -27,13 +27,13 @@ def check_proposition(morphism_dict, r, s, to_alphabet, from_alphabet, alpha, be
     check_ts_occurrences(morphism, from_alphabet, s, ts, r)
     check_tr_ts_occurrences_fy(morphism, from_alphabet, alpha, tr, ts)
 
-    tr_max_z = get_max_z_size_for_tr(r, beta)
-    print("max size of z for tr:", tr_max_z)
-    z_check(morphism, from_alphabet, r, s, beta, tr_max_z)
+    tr_z_stop = int(get_z_size_stop_for_tr(r, beta))
+    print("max size of z for tr:", tr_z_stop - 1)
+    z_check_tr(morphism, from_alphabet, r, tr, beta, tr_z_stop)
 
-    ts_max_z = get_max_z_size_for_ts(s, beta)
-    print("max size of z for ts:", ts_max_z)
-    z_check(morphism, from_alphabet, r, s, beta, ts_max_z)
+    ts_z_stop = int(get_z_size_stop_for_ts(s, beta))
+    print("max size of z for ts:", ts_z_stop - 1)
+    z_check_ts(morphism, from_alphabet, s, ts, beta, ts_z_stop)
 
     #check_tr_occurrences(morphism, from_alphabet, tr, alpha)
     #check_for_all_preimages(morphism, 3, from_alphabet, alpha, beta)
@@ -199,34 +199,55 @@ def check_tr_ts_occurrences_fy(f, from_alphabet, alpha, tr, ts, print_results = 
     if print_results: print(f"tr and ts occur exactly as they should in {alpha}-free words over {from_alphabet} of length 2.")
     return True
 
-def get_max_z_size_for_tr(r, beta):
+def get_z_size_stop_for_tr(r, beta):
     n = len(r)
     num = beta.rational.numerator
     den = beta.rational.denominator
     return 2*n + (2 * den * n - num * n) / (num - den)
 
-def get_max_z_size_for_ts(s, beta):
+def get_z_size_stop_for_ts(s, beta):
     n = len(s)
     num = beta.rational.numerator
     den = beta.rational.denominator
     return 2*n + (2 * den * n - num * n) / (num - den)
 
-def z_check(f, from_alphabet, r, s, beta, max_size_z, print_results = True):
-    for i in range(1,max_size_z+1):
-        for j in range(0,len(r)):
-            for c in from_alphabet:
-                if not is_exponent_free((r+f(c))[j:j+i], beta):
-                    if print_results: print("w contains z.")
+def z_check_tr(f, from_alphabet, r, tr, beta, z_size_stop, print_results = True):
+    from combinatorics.word import get_common_prefix
+    from itertools import permutations
+
+    q = len(f(from_alphabet[0]))
+    starting_indices_stop = (r + get_common_prefix([f(a) for a in from_alphabet])).find(tr)
+
+    for i in range(starting_indices_stop):
+        for length in range(1, z_size_stop):
+            preimages_to_check = permutations(from_alphabet, length // q + 1)
+            for p in preimages_to_check:
+                image = r + "".join([f(a) for a in p])
+                if not is_exponent_free(image[i:i + length], beta):
+                    if print_results: print(image, "is not", beta, "-free.")
                     return False
-                
-    for i in range(1,max_size_z+1):
-        for j in range(1,len(s)+1):
-            for c in from_alphabet:
-                if not is_exponent_free((f(c)+s)[-j:-(j+i)], beta):
-                    if print_results: print("w contains z.")
+
+    if print_results: print("There is no exponent greater than", beta, "of length at most", z_size_stop-1)
+    return True
+
+def z_check_ts(f, from_alphabet, s, ts, beta, z_size_stop, print_results = True):
+    from combinatorics.word import get_common_prefix
+    from itertools import permutations
+
+    q = len(f(from_alphabet[0]))
+    common_prefix = get_common_prefix([f(a) for a in from_alphabet])
+    starting_indices_stop = (common_prefix + s).find(ts) + len(ts) - len(common_prefix + s) - 2
+
+    for i in range(0, starting_indices_stop, -1):
+        for length in range(1, z_size_stop):
+            preimages_to_check = permutations(from_alphabet, length // q + 1)
+            for p in preimages_to_check:
+                image = "".join([f(a) for a in p]) + s
+                if not is_exponent_free(image[i-length:i], beta):
+                    if print_results: print(image, "is not", beta, "-free.")
                     return False
-    
-    if print_results: print("w does not contain z.")
+
+    if print_results: print("There is no exponent greater than", beta, "of length at most", z_size_stop-1)
     return True
 
 
