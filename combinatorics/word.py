@@ -625,3 +625,13 @@ def keys_from_max_values(dict, n = 1):
         if len(dict) == 0: break
         keys.append(max(dict, key=dict.get))
     return keys
+
+def bucket_words_by_length(words):
+    result = [[""]]
+    for w in words:
+        index = len(w)
+        if index > len(result):
+            for _ in range(len(result)+1, index+1):
+                    result.append([])
+        result[index].append(w)
+    return result

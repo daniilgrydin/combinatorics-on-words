@@ -369,20 +369,28 @@ def get_min_critical_exponent_of_extensions_of_words(words):
         criticals.append(get_min_critical_exponent_of_extensions(w))
     return min(criticals)
 
-def get_words_with_critical_exponent(target_exponent, max_multiple, min_multiple = 1, words = [], words_file = "", output_file = "", do_print = False):
+def get_words_with_critical_exponent(target_exponent, max_multiple, min_multiple = 1, beta_free_words = [], 
+                                    beta_free_words_file = "", output_file = "", do_print = False):
     import tools.file_rw as rw
 
-    result = []
+    try:
+        result = rw.load_words(output_file)
+    except FileNotFoundError:
+        result = []
+
     beta = ExtendedReal(target_exponent.numerator, target_exponent.denominator, True)
 
-    if len(words_file) > 0:
-        words = rw.load_words_by_length(words_file)
+    if len(beta_free_words_file) > 0:
+        beta_free_words = rw.load_words_by_length(beta_free_words_file)
+    elif len(beta_free_words) == 0:
+        if do_print: print("No beta-free words were given.")
+        return []
 
     for m in range(min_multiple, max_multiple + 1):
         initial_part_length = m * target_exponent.denominator
-        print(words[initial_part_length])
-        if do_print: print("Looking at words of length", m * target_exponent.numerator)
-        for w in words[initial_part_length]:
+        if do_print: print(f"Creating words with critical exponent {target_exponent} of length", 
+                        m * target_exponent.numerator)
+        for w in beta_free_words[initial_part_length]:
             current = w
             to_repeat = (target_exponent - 1) * initial_part_length
             while to_repeat >= initial_part_length:
@@ -392,6 +400,10 @@ def get_words_with_critical_exponent(target_exponent, max_multiple, min_multiple
                 current += w[:int(to_repeat)]
             if is_exponent_free(current, beta):
                 result.append(current)
-        rw.save_words(result, output_file)
+
+        if len(output_file) > 0:
+            rw.save_words(result, output_file)
+        else:
+            rw.append_none_flag(output_file, m * target_exponent.numerator)
     
     return result

@@ -1,5 +1,6 @@
 from tools.decomposition import TernaryConstructionDecomposition
 from typing import List
+import os
 
 NONE_FLAG = "none_flag_"
 NONE_FLAG_LENGTH = len(NONE_FLAG)
@@ -139,3 +140,7 @@ def save_images_of_morphisms_from_terminal(terminal_text : str, file_path):
             morphisms.append(current.copy())
             current.clear()
     save_images_of_morphisms(morphisms, file_path)
+
+def max_word_length_in_file(file_path):
+    words_by_length, none_sizes = load_words_by_length(file_path, get_none_sizes=True)
+    return max(len(words_by_length) - 1, max(none_sizes) if len(none_sizes) > 0 else 0)

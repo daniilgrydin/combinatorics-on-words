@@ -1,3 +1,93 @@
+class Construction():
+    def __init__(self, morphism, alphabet, r : str = None, s : str = None):
+        from combinatorics.word import get_common_prefix, get_common_suffix
+
+        images = []
+        if isinstance(morphism, dict):
+            for img in morphism.values():
+                images.append(img)
+        elif isinstance(morphism, list):
+            images = morphism
+        else:
+            raise ValueError(f"{type(morphism)} not supported.")
+        
+        if r != None:
+            self.A = determine_A(images, get_A_candidates_from_bookend(r, alphabet), alphabet)
+            self.B = get_B_from_r_and_A(r, self.A)
+            self.A_rev_comp = complement(self.A, alphabet)[::-1]
+            self.B_rev_comp = complement(self.B, alphabet)[::-1]
+            self.r = r
+            self.s = self.A + self.B_rev_comp + self.A_rev_comp
+        elif s != None:
+            self.A = determine_A(images, get_A_candidates_from_bookend(s, alphabet), alphabet)
+            self.B = get_B_from_s_and_A(s, self.A, alphabet)
+            self.A_rev_comp = complement(self.A, alphabet)[::-1]
+            self.B_rev_comp = complement(self.B, alphabet)[::-1]
+            self.r = self.A + self.B + self.A_rev_comp
+            self.s = s
+        else:
+            print("No bookends provided, so search may be slow.")
+            self.r, self.s = get_bookends_from_morphism(images, alphabet)
+            self.A = determine_A(images, get_A_candidates_from_bookend(self.r, alphabet), alphabet)
+            self.B = get_B_from_r_and_A(self.r, self.A)
+            self.A_rev_comp = complement(self.A, alphabet)[::-1]
+            self.B_rev_comp = complement(self.B, alphabet)[::-1]
+
+        self.V1, self.V2 = get_V1_V2(images, self.A)
+        self.g = get_g(images, self.A, self.V1, self.V2)
+
+        suffix_test_items = images.copy()
+        suffix_test_items.append(self.r)
+        prefix_test_items = images.copy()
+        prefix_test_items.append(self.s)
+        self.r_prime = get_common_suffix(suffix_test_items)
+        self.s_prime = get_common_prefix(prefix_test_items)
+
+        self.alpha = None
+        self.beta  = None
+
+    def get_morphism_images(self):
+        result = []
+        for g in self.g.values():
+            result.append(self.A + self.V1 + g + self.V2 + self.A_rev_comp)
+        return result
+    
+    def get_alpha(self):
+        from combinatorics.exponent import get_critical_exponent_of_words
+
+        if self.alpha == None:
+            self.alpha = get_critical_exponent_of_words(
+                [self.r + img + self.s for img in self.get_morphism_images()])
+            
+        return self.alpha
+
+    def get_beta(self):
+        from combinatorics.exponent import get_min_critical_exponent_of_extensions_of_words
+
+        if self.beta == None:
+            self.beta = get_min_critical_exponent_of_extensions_of_words(
+                [self.r + img + self.s for img in self.get_morphism_images()])
+            
+        return self.beta
+
+
+    def __str__(self):
+        result = f" \
+        A: {self.A} \n \
+        A~-: {self.A_rev_comp} \n \
+        B: {self.B} \n \
+        B~-: {self.B_rev_comp} \n \
+        r: {self.r} \n \
+        r': {self.r_prime} \n \
+        s: {self.s} \n \
+        s': {self.s_prime} \n \
+        V1: {self.V1} \n \
+        V2: {self.V2} \n"
+        for k in self.g.keys():
+            result += f" \
+        g({k}): {self.g[k]} \n"
+        return result
+
 class TernaryConstructionDecomposition():
     def __init__(self, morphism, r : str = None, s : str = None):
         from combinatorics.word import get_common_prefix, get_common_suffix
@@ -11,23 +101,23 @@ class TernaryConstructionDecomposition():
             images = morphism
         
         if r != None:
-            self.A = determine_A(images, get_A_candidates_from_bookend(r))
+            self.A = determine_A(images, get_A_candidates_from_bookend(r, "012"), "012")
             self.B = get_B_from_r_and_A(r, self.A)
             self.A_rev_comp = ternary_complement(self.A)[::-1]
             self.B_rev_comp = ternary_complement(self.B)[::-1]
             self.r = r
             self.s = self.A + self.B_rev_comp + self.A_rev_comp
         elif s != None:
-            self.A = determine_A(images, get_A_candidates_from_bookend(s))
-            self.B = get_B_from_s_and_A(s, self.A)
+            self.A = determine_A(images, get_A_candidates_from_bookend(s, "012"), "012")
+            self.B = get_B_from_s_and_A(s, self.A, "012")
             self.A_rev_comp = ternary_complement(self.A)[::-1]
             self.B_rev_comp = ternary_complement(self.B)[::-1]
             self.r = self.A + self.B + self.A_rev_comp
             self.s = s
         else:
             print("No bookends provided, so search may be slow.")
-            self.r, self.s = get_bookends_from_morphism(images)
-            self.A = determine_A(images, get_A_candidates_from_bookend(self.r))
+            self.r, self.s = get_bookends_from_morphism(images, "012")
+            self.A = determine_A(images, get_A_candidates_from_bookend(self.r, "012"), "012")
             self.B = get_B_from_r_and_A(self.r, self.A)
             self.A_rev_comp = ternary_complement(self.A)[::-1]
             self.B_rev_comp = ternary_complement(self.B)[::-1]
@@ -86,7 +176,7 @@ class TernaryConstructionDecomposition():
         "
 
 def decompose_ternary_construction(morphism_images, r, s):
-    A = determine_A(morphism_images, get_A_candidates_from_bookend(r))
+    A = determine_A(morphism_images, get_A_candidates_from_bookend(r, "012"), "012")
     B = get_B_from_r_and_A(r, A)
     V1, V2 = get_V1_V2(morphism_images, A)
     g = get_g(morphism_images, A, V1, V2)
@@ -97,26 +187,26 @@ def decompose_ternary_construction(morphism_images, r, s):
     print("V2:",V2)
     print("g:",g)
     
-def get_A_candidates_from_bookend(b):
+def get_A_candidates_from_bookend(b, alphabet):
     candidates = []
     for i in range(0, len(b)):
         candidate = b[:i+1]
-        if ternary_complement(b[-len(candidate):])[::-1] == candidate:
+        if complement(b[-len(candidate):], alphabet)[::-1] == candidate:
             candidates.append(candidate)
     return candidates
 
 def get_B_from_r_and_A(r, A):
     return r[len(A):-len(A)]
 
-def get_B_from_s_and_A(s, A):
-    return ternary_complement(s[len(A):-len(A)])[::-1]
+def get_B_from_s_and_A(s, A, alphabet):
+    return complement(s[len(A):-len(A)], alphabet)[::-1]
 
-def determine_A(morphism_images, A_candidates):
+def determine_A(morphism_images, A_candidates, alphabet):
     candidates = []
     for A in A_candidates:
         pass_flag = True
         for img in morphism_images:
-            if not img[:len(A)] == A or not img[-len(A):] == ternary_complement(A)[::-1]:
+            if not img[:len(A)] == A or not img[-len(A):] == complement(A, alphabet)[::-1]:
                 pass_flag = False
                 break
         if pass_flag:
@@ -139,10 +229,10 @@ def get_g(morphism_images, A, V1, V2):
     trimmed_images = []
     for img in morphism_images:
         trimmed_images.append(img[len(A) + len(V1):-len(A) - len(V2)])
-    return {'0':trimmed_images[0],
-            '1':trimmed_images[1],
-            '2':trimmed_images[2],
-            '3':trimmed_images[3]}
+    result = {}
+    for i in range(0,len(morphism_images)):
+        result[str(i)] = trimmed_images[i]
+    return result
 
 def ternary_complement(w):
     result = ""
@@ -155,7 +245,18 @@ def ternary_complement(w):
             result += '0'
     return result
 
-def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_seed = None):
+def complement(w, A):
+    result = ""
+    for c in w:
+        if c == A[0]:
+            result += A[-1]
+        elif c == A[-1]:
+            result += A[0]
+        else:
+            result += c
+    return result
+
+def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_size = 0, B_seed = None):
     from combinatorics.word import get_common_prefix, get_common_suffix, generate_greedy_words
     from combinatorics.exponent import get_critical_exponent, Rational, ExtendedReal, is_suffix_exponent_free, is_exponent_free
     from combinatorics.extremal import is_left_extremal, is_right_extremal
@@ -165,7 +266,7 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
 
     largest_A = get_common_prefix(images)
     largest_A_rev_comp = get_common_suffix(images)
-    potential_A = get_common_prefix([largest_A, ternary_complement(largest_A_rev_comp)[::-1]])
+    potential_A = get_common_prefix([largest_A, complement(largest_A_rev_comp, alphabet)[::-1]])
 
     if len(potential_A) < min_A_size:
         print(f"Potential A {potential_A} is smaller than min A size {min_A_size}")
@@ -181,7 +282,7 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
     if B_seed == None:
         B_candidates = []
         for i in range(0, max_bookend_size - 2*len(potential_A) + 1):
-            B_candidates.append(generate_greedy_words("012", 
+            B_candidates.append(generate_greedy_words(alphabet, 
                                             1,
                                             lambda w: is_suffix_exponent_free(w, beta), 
                                             B_candidates[-1] if len(B_candidates) > 0 else [""]))
@@ -192,18 +293,18 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
         A_candidate = potential_A[:i]
 
         if B_seed == None:
-            B_candidates.append(generate_greedy_words("012", 
+            B_candidates.append(generate_greedy_words(alphabet, 
                                                 1, 
                                                 lambda w: is_suffix_exponent_free(w, beta), 
                                                 B_candidates[-1] if len(B_candidates) > 0 else [""]))
                 
         for generated_index in range(0, max_bookend_size - 2*len(A_candidate) + 1):
             for B_candidate in B_candidates[generated_index]:
-                r_candidate = A_candidate + B_candidate + ternary_complement(A_candidate)[::-1]
+                r_candidate = A_candidate + B_candidate + complement(A_candidate, alphabet)[::-1]
 
                 left_extremal_flag = True
                 for img in images:
-                    if not is_left_extremal(r_candidate + img, "012", lambda w: is_exponent_free(w, beta)):
+                    if not is_left_extremal(r_candidate + img, alphabet, lambda w: is_exponent_free(w, beta)):
                         left_extremal_flag = False
                         break
                 
@@ -211,10 +312,10 @@ def get_bookends_from_morphism(images, max_bookend_size = -1, min_A_size = 0, B_
                     continue
 
                 # r_candidate is a left bookend. Try for right bookend
-                s_candidate = A_candidate + ternary_complement(B_candidate)[::-1] + ternary_complement(A_candidate)[::-1]
+                s_candidate = A_candidate + complement(B_candidate, alphabet)[::-1] + complement(A_candidate, alphabet)[::-1]
                 right_extremal_flag = True
                 for img in images:
-                    if not is_right_extremal(img + s_candidate, "012", lambda w: is_exponent_free(w, beta)):
+                    if not is_right_extremal(img + s_candidate, alphabet, lambda w: is_exponent_free(w, beta)):
                         right_extremal_flag = False
                         break
 
