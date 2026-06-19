@@ -121,14 +121,13 @@ def build_morphisms(q_to_build, preimage_words_file, preimage_alphabet, image_al
 # beta is power of the desired words obtained from the morphism
 # filter is a function of a word that can narrow down the number of combinations to check (eg. words beginning with 0102 and ending with 0212)
 # output is a file to write the morphisms to
-def find_morphisms(preimage_alphabet, preimage_words_file, beta, q,
+def find_morphisms(preimage_alphabet, beta, q,
                     output_file, nearly_extremal_words = [], nearly_extremal_words_file = "", 
+                    preimages = [], preimage_words_file = "", 
                     to_check=-1, STOP=-1, do_print = True):
     from math import comb
     from random import randrange
     from itertools import combinations
-
-    preimages = rw.load_words(preimage_words_file)
 
     if do_print: print(f"Loaded preimages from {preimage_words_file}")
 
@@ -136,6 +135,12 @@ def find_morphisms(preimage_alphabet, preimage_words_file, beta, q,
         nearly_extremal_words = rw.load_words_by_length(nearly_extremal_words_file)[q]
     elif len(nearly_extremal_words) == 0:
         if do_print: print("No nearly extremal words were given.")
+        return []
+    
+    if len(preimage_words_file) > 0:
+        preimages = rw.load_words(preimage_words_file)
+    elif len(preimages) == 0:
+        if do_print: print("No preimages given.")
         return []
 
     if do_print: print(f"Loaded {len(nearly_extremal_words)} nearly extremal from {nearly_extremal_words_file}.")
@@ -180,7 +185,7 @@ def find_morphisms(preimage_alphabet, preimage_words_file, beta, q,
 
         if to_check != -1 and combo_count >= to_check:
             if len(morphisms) > 0:
-                rw.save_images_of_morphisms([m.values() for m in morphisms], output_file)
+                rw.save_images_of_morphisms(morphisms, output_file)
             return morphisms
 
         if not check_valid_morphism(combo): continue
@@ -189,14 +194,14 @@ def find_morphisms(preimage_alphabet, preimage_words_file, beta, q,
         for i in range(0, len(preimage_alphabet)):
             if do_print: print(preimage_alphabet[i], combo[i])
             result_morphism_dict[preimage_alphabet[i]] = combo[i]
-        morphisms.append(result_morphism_dict)
+        morphisms.append(result_morphism_dict.values())
         if do_print: print()
         found += 1
         if found == STOP:
             break
 
     if len(morphisms) > 0:
-        rw.save_images_of_morphisms([m.values() for m in morphisms], output_file)
+        rw.save_images_of_morphisms(morphisms, output_file)
     return morphisms
     
 # alphabet is what nearly extremal words will be made over
@@ -279,7 +284,8 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",
 # B_seed_file is a file of all beta-free words. This is not necessary but greatly speeds up time searching for a suitable B. 
 def find_ideal_constructions(morphisms = [], morphism_images_file="",
                          max_bookend_size = -1, min_A_size = 0, get_exponents = False,
-                         beta_free_words_file = None, do_print = True, output_file = None):
+                         beta_free_words_file = None, do_print = True, output_file = None,
+                         timeout_length = -1):
     from tools.decomposition import get_bookends_from_morphism, TernaryConstructionDecomposition
     from bookends import is_left_bookend_ideal, is_right_bookend_ideal
     from tools.file_rw import load_words_by_length
@@ -316,7 +322,7 @@ def find_ideal_constructions(morphisms = [], morphism_images_file="",
             print(f"\n{count} morphisms processed...")
 
         count += 1
-        bookends_result = get_bookends_from_morphism(m, "012", max_bookend_size, min_A_size, B_seed)
+        bookends_result = get_bookends_from_morphism(m, "012", max_bookend_size, min_A_size, B_seed, timeout_length)
         if bookends_result == None:
             continue
 

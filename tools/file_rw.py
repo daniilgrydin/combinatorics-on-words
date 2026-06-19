@@ -130,10 +130,10 @@ def append_constrctions(constructions : List[TernaryConstructionDecomposition], 
                 f.write("beta:" + c.get_beta().__str__() + '\n')
             f.write('-\n')
 
-def save_images_of_morphisms_from_terminal(terminal_text : str, file_path):
+def save_images_of_morphisms_from_terminal(terminal_text_file, file_path):
     morphisms = []
     current = []
-    for line in terminal_text.split('\n'):
+    for line in open(terminal_text_file, 'r').readlines():
         if len(line) > 0 and line[0] in ['0', '1', '2', '3']:
             current.append(line[2:].strip())
         elif line[:5] == 'Found':

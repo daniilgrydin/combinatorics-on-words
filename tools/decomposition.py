@@ -256,10 +256,11 @@ def complement(w, A):
             result += c
     return result
 
-def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_size = 0, B_seed = None):
+def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_size = 0, B_seed = None, timeout_length = -1):
     from combinatorics.word import get_common_prefix, get_common_suffix, generate_greedy_words
     from combinatorics.exponent import get_critical_exponent, Rational, ExtendedReal, is_suffix_exponent_free, is_exponent_free
     from combinatorics.extremal import is_left_extremal, is_right_extremal
+    import time
 
     if max_bookend_size == -1:
         max_bookend_size = len(images[0])
@@ -289,6 +290,9 @@ def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_si
     else:
         B_candidates = B_seed
 
+    elapsed = 0
+    start_time = time.time()
+
     for i in range(len(potential_A), min_A_size - 1, -1):
         A_candidate = potential_A[:i]
 
@@ -300,6 +304,12 @@ def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_si
                 
         for generated_index in range(0, max_bookend_size - 2*len(A_candidate) + 1):
             for B_candidate in B_candidates[generated_index]:
+                elapsed = time.time() - start_time
+                if timeout_length != -1 and elapsed > timeout_length:
+                    print("No bookends found.")
+                    return None
+
+
                 r_candidate = A_candidate + B_candidate + complement(A_candidate, alphabet)[::-1]
 
                 left_extremal_flag = True
