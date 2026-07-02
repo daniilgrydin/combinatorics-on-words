@@ -1,4 +1,5 @@
 import tools.file_rw as rw
+from combinatorics.exponent import ExtendedReal
 
 BETA_FREE_FILE_NAME             = "beta-free_words.txt" 
 CRITICAL_WORDS_FILE_NAME        = "critical_words.txt"
@@ -35,7 +36,7 @@ def get_input(prompt, pass_filter):
     return received
 
 
-def extendERT(alphabet, alpha, beta, gamma, alpha_free_words_file, extension_directory):
+def extendERT(alphabet, beta, alpha_free_words_file, extension_directory):
     from combinatorics.word import generate_greedy_words, bucket_words_by_length
     from combinatorics.exponent import is_suffix_exponent_free, get_words_with_critical_exponent, Rational
     from tools.construction_search_tools import generate_critical_nearly_extremal, find_morphisms, find_ideal_constructions
@@ -53,7 +54,7 @@ def extendERT(alphabet, alpha, beta, gamma, alpha_free_words_file, extension_dir
     preimages = rw.load_words(alpha_free_words_file)
 
     morphism_directory = extension_directory + MORPHISMS_DIRECTORY_NAME
-    constructions_direction = extension_directory + CONSTRUCTIONS_DIRECTORY_NAME
+    constructions_directory = extension_directory + CONSTRUCTIONS_DIRECTORY_NAME
 
     largest_prefix = '010210120210201202'
     largest_suffix = '020120210201210212'
@@ -140,18 +141,25 @@ def extendERT(alphabet, alpha, beta, gamma, alpha_free_words_file, extension_dir
 
     morphism_files = os.listdir(morphism_directory)
     lengths_to_check = []
-    for m in morphism_files:
-        lengths_to_check.append(m[m.rfind('/')+1:m.rfind('-')])
-
-    # The algorithm for finding bookends needs to be improved. It should be time based and
-    # look through the smallest lengths of bookends first.
-
-    # for q in lengths_to_check:
-    #     ideal = find_ideal_constructions(morphism_images_file=Q_MORPHISM_FILE_NAME(morphism_directory, q), 
-    #                                 max_bookend_size=q, min_A_size=8, 
-    #                                 beta_free_words_file = beta_free_file,
-    #                                 get_exponents=True, 
-    #                                 output_file=ideal_construction_file_name(q))
+    for file in morphism_files:
+        lengths_to_check.append(int(file[file.rfind('/')+1:file.rfind('-')]))
+    
+    print("Morphism lengths to check:" + "\n".join(lengths_to_check))
+    def valid_morphism_lengths(recieved):
+        lengths = recieved.split()
+        for l in lengths:
+            if not int(l) in lengths_to_check:
+                return False
+        return True
+    to_check = get_input("Enter the lengths to check separated by a space (empty to skip.)",
+        valid_morphism_lengths)
+    
+    for q in lengths_to_check:
+        ideal = find_ideal_constructions(morphism_images_file = Q_MORPHISM_FILE_NAME(morphism_directory, q), 
+                                    max_bookend_size = q, 
+                                    beta_free_words_file = beta_free_file,
+                                    get_exponents = True, 
+                                    output_file = IDEAL_CONSTRUCTION_FILE_NAME(constructions_directory, q))
 
     # 6
 
@@ -168,3 +176,5 @@ def extendERT(alphabet, alpha, beta, gamma, alpha_free_words_file, extension_dir
     #     ExtendedReal(21,11,False),
     #     '01020120210201210212010',
     #     '21201021012021020120212')
+
+extendERT("012", ExtendedReal(39,40,True), 'data/75_free_quaternary_words.txt', 'data/39-40p_to_/')

@@ -283,7 +283,7 @@ def generate_nearly_extremal(alphabet, max_length, beta, file_path = "",
 # min_A_size is the smallest A will be.
 # B_seed_file is a file of all beta-free words. This is not necessary but greatly speeds up time searching for a suitable B. 
 def find_ideal_constructions(morphisms = [], morphism_images_file="",
-                         max_bookend_size = -1, min_A_size = 0, get_exponents = False,
+                         max_bookend_size = -1, get_exponents = False,
                          beta_free_words_file = None, do_print = True, output_file = None,
                          timeout_length = -1):
     from tools.decomposition import get_bookends_from_morphism, TernaryConstructionDecomposition
@@ -322,7 +322,7 @@ def find_ideal_constructions(morphisms = [], morphism_images_file="",
             print(f"\n{count} morphisms processed...")
 
         count += 1
-        bookends_result = get_bookends_from_morphism(m, "012", max_bookend_size, min_A_size, B_seed, timeout_length)
+        bookends_result = get_bookends_from_morphism(m, "012", max_bookend_size, B_seed, timeout_length)
         if bookends_result == None:
             continue
 
@@ -342,7 +342,8 @@ def find_ideal_constructions(morphisms = [], morphism_images_file="",
                 current_construction.get_alpha()
                 current_construction.get_beta()
             result_constructions.append(current_construction)
-
+            if len(output_file) > 0:
+                rw.save_constructions(result_constructions, output_file)
 
     if len(output_file) > 0 and len(result_constructions) > 0:
         rw.save_constructions(result_constructions, output_file)

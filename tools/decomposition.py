@@ -256,10 +256,11 @@ def complement(w, A):
             result += c
     return result
 
-def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_size = 0, B_seed = None, timeout_length = -1):
-    from combinatorics.word import get_common_prefix, get_common_suffix, generate_greedy_words
-    from combinatorics.exponent import get_critical_exponent, Rational, ExtendedReal, is_suffix_exponent_free, is_exponent_free
+def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, B_candidates_by_length = None, timeout_length = -1):
+    from combinatorics.word import get_common_prefix, get_common_suffix, bucket_words_by_length
+    from combinatorics.exponent import get_critical_exponent, Rational, ExtendedReal, is_exponent_free
     from combinatorics.extremal import is_left_extremal, is_right_extremal
+    from random import randrange
     import time
 
     if max_bookend_size == -1:
@@ -269,10 +270,6 @@ def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_si
     largest_A_rev_comp = get_common_suffix(images)
     potential_A = get_common_prefix([largest_A, complement(largest_A_rev_comp, alphabet)[::-1]])
 
-    if len(potential_A) < min_A_size:
-        print(f"Potential A {potential_A} is smaller than min A size {min_A_size}")
-        return None
-
     beta = Rational(1,1)
     for img in images:
         exponent = get_critical_exponent(img)
@@ -280,60 +277,124 @@ def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_si
             beta = exponent
     beta = ExtendedReal(beta.numerator, beta.denominator, True)
 
-    if B_seed == None:
-        B_candidates = []
-        for i in range(0, max_bookend_size - 2*len(potential_A) + 1):
-            B_candidates.append(generate_greedy_words(alphabet, 
-                                            1,
-                                            lambda w: is_suffix_exponent_free(w, beta), 
-                                            B_candidates[-1] if len(B_candidates) > 0 else [""]))
-    else:
-        B_candidates = B_seed
+    total_B_candidates = 0
+    for i in range(0, max_bookend_size + 1): 
+        if len(B_candidates_by_length) > i: total_B_candidates += len(B_candidates_by_length[i])
 
     elapsed = 0
     start_time = time.time()
 
-    for i in range(len(potential_A), min_A_size - 1, -1):
-        A_candidate = potential_A[:i]
+    for bookend_length in range(1, max_bookend_size):
+        print("Looking for bookends of length", bookend_length)
+        print(f"Time elapsed {round(elapsed)}/{timeout_length}")
+        A_B_lengths = []
+        for B_length in range(0, bookend_length - 1, 2):
+            A_length = (bookend_length - B_length) // 2
+            A_B_lengths.append((A_length, B_length if bookend_length % 2 == 0 else B_length + 1))
+        
+        alotted_time_end = timeout_length * (bookend_length / max_bookend_size)**2
 
-        if B_seed == None:
-            B_candidates.append(generate_greedy_words(alphabet, 
-                                                1, 
-                                                lambda w: is_suffix_exponent_free(w, beta), 
-                                                B_candidates[-1] if len(B_candidates) > 0 else [""]))
-                
-        for generated_index in range(0, max_bookend_size - 2*len(A_candidate) + 1):
-            for B_candidate in B_candidates[generated_index]:
-                elapsed = time.time() - start_time
-                if timeout_length != -1 and elapsed > timeout_length:
-                    print("No bookends found.")
-                    return None
+        while elapsed < alotted_time_end:
+            elapsed = time.time() - start_time
+            if timeout_length != -1 and elapsed > timeout_length:
+                print("No bookends found. Timed out.")
+                return None
+            
+            if len(A_B_lengths) == 0: break
+            current_lengths = A_B_lengths[randrange(0, len(A_B_lengths))]
+            if current_lengths[0] > len(potential_A) or current_lengths[1] >= len(B_candidates_by_length): continue
 
+            A_candidate = potential_A[:current_lengths[0]]
+            B_candidates = B_candidates_by_length[current_lengths[1]]
+            if len(B_candidates) == 0: continue
+            B_candidate = B_candidates[randrange(0, len(B_candidates))]
 
-                r_candidate = A_candidate + B_candidate + complement(A_candidate, alphabet)[::-1]
+            r_candidate = A_candidate + B_candidate + complement(A_candidate, alphabet)[::-1]
 
-                left_extremal_flag = True
-                for img in images:
-                    if not is_left_extremal(r_candidate + img, alphabet, lambda w: is_exponent_free(w, beta)):
-                        left_extremal_flag = False
-                        break
-                
-                if not left_extremal_flag: # r_candidate did not work.
-                    continue
+            left_extremal_flag = True
+            for img in images:
+                if not is_left_extremal(r_candidate + img, alphabet, lambda w: is_exponent_free(w, beta)):
+                    left_extremal_flag = False
+                    break
+            
+            if not left_extremal_flag: # r_candidate did not work.
+                continue
 
-                # r_candidate is a left bookend. Try for right bookend
-                s_candidate = A_candidate + complement(B_candidate, alphabet)[::-1] + complement(A_candidate, alphabet)[::-1]
-                right_extremal_flag = True
-                for img in images:
-                    if not is_right_extremal(img + s_candidate, alphabet, lambda w: is_exponent_free(w, beta)):
-                        right_extremal_flag = False
-                        break
+            # r_candidate is a left bookend. Try for right bookend
+            s_candidate = A_candidate + complement(B_candidate, alphabet)[::-1] + complement(A_candidate, alphabet)[::-1]
+            right_extremal_flag = True
+            for img in images:
+                if not is_right_extremal(img + s_candidate, alphabet, lambda w: is_exponent_free(w, beta)):
+                    right_extremal_flag = False
+                    break
 
-                if right_extremal_flag and left_extremal_flag:
-                    return r_candidate, s_candidate
+            if right_extremal_flag and left_extremal_flag:
+                return r_candidate, s_candidate
 
     print("No bookends found.")
     return None
+
+# def get_bookends_from_morphism(images, alphabet, max_bookend_size = -1, min_A_size = 0, B_candidates = None, timeout_length = -1):
+#     from combinatorics.word import get_common_prefix, get_common_suffix, generate_greedy_words
+#     from combinatorics.exponent import get_critical_exponent, Rational, ExtendedReal, is_suffix_exponent_free, is_exponent_free
+#     from combinatorics.extremal import is_left_extremal, is_right_extremal
+#     import time
+
+#     if max_bookend_size == -1:
+#         max_bookend_size = len(images[0])
+
+#     largest_A = get_common_prefix(images)
+#     largest_A_rev_comp = get_common_suffix(images)
+#     potential_A = get_common_prefix([largest_A, complement(largest_A_rev_comp, alphabet)[::-1]])
+
+#     if len(potential_A) < min_A_size:
+#         print(f"Potential A {potential_A} is smaller than min A size {min_A_size}")
+#         return None
+
+#     beta = Rational(1,1)
+#     for img in images:
+#         exponent = get_critical_exponent(img)
+#         if exponent > beta:
+#             beta = exponent
+#     beta = ExtendedReal(beta.numerator, beta.denominator, True)
+
+#     elapsed = 0
+#     start_time = time.time()
+
+#     for i in range(len(potential_A), min_A_size - 1, -1):
+#         A_candidate = potential_A[:i]
+                
+#         for B_length in range(0, max_bookend_size - 2*len(A_candidate) + 1):
+#             for B_candidate in B_candidates[B_length]:
+#                 elapsed = time.time() - start_time
+#                 if timeout_length != -1 and elapsed > timeout_length:
+#                     print("No bookends found.")
+#                     return None
+
+#                 r_candidate = A_candidate + B_candidate + complement(A_candidate, alphabet)[::-1]
+
+#                 left_extremal_flag = True
+#                 for img in images:
+#                     if not is_left_extremal(r_candidate + img, alphabet, lambda w: is_exponent_free(w, beta)):
+#                         left_extremal_flag = False
+#                         break
+                
+#                 if not left_extremal_flag: # r_candidate did not work.
+#                     continue
+
+#                 # r_candidate is a left bookend. Try for right bookend
+#                 s_candidate = A_candidate + complement(B_candidate, alphabet)[::-1] + complement(A_candidate, alphabet)[::-1]
+#                 right_extremal_flag = True
+#                 for img in images:
+#                     if not is_right_extremal(img + s_candidate, alphabet, lambda w: is_exponent_free(w, beta)):
+#                         right_extremal_flag = False
+#                         break
+
+#                 if right_extremal_flag and left_extremal_flag:
+#                     return r_candidate, s_candidate
+
+#     print("No bookends found.")
+#     return None
 
 
 # primary = TernaryConstructionDecomposition([
